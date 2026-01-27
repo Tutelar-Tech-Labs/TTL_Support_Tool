@@ -1,0 +1,52 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+ .input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e2e8f0;
+  padding: 0.75rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #0f172a;
+ }
+
+ .input::placeholder {
+  color: #94a3b8;
+ }
+
+ .input:focus {
+  outline: 2px solid rgba(79, 70, 229, 0.4);
+  outline-offset: 0;
+  border-color: #4f46e5;
+ }
+
+@layer components {
+  .input-premium {
+    @apply w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-3 
+    text-slate-800 font-medium transition-all duration-200
+    focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 focus:outline-none 
+    disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400;
+  }
+
+  .label-premium {
+    @apply block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2;
+  }
+}
+
+/* App-wide defaults */
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background-color: #f8fafc; /* slate-50 */
+  color: #0f172a;
+}
