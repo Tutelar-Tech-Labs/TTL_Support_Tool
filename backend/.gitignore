@@ -8,7 +8,11 @@ node_modules/
 
 # Google Drive Credentials (NEVER COMMIT!)
 credentials/
+<<<<<<< HEAD
 # *.json - Removed to allow package.json
+=======
+package-lock.json
+>>>>>>> 8ab38add65cb6c2995cfc83dfbfa5d793287fa4f
 
 # Uploads
 uploads/*

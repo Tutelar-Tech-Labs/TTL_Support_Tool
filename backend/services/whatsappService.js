@@ -35,4 +35,8 @@ export const sendTicketAcknowledgement = async (customerName, contactPerson, tic
     console.error("Error sending WhatsApp notification:", error);
     return false;
   }
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 8ab38add65cb6c2995cfc83dfbfa5d793287fa4f
