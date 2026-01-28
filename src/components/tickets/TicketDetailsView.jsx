@@ -27,6 +27,10 @@ export default function TicketDetailsView() {
   const [ticket, setTicket] = useState(null);
   const [newUpdate, setNewUpdate] = useState("");
 
+  const [initialStatus, setInitialStatus] = useState("");
+  const [openDuration, setOpenDuration] = useState("");
+  const [customerPendingDuration, setCustomerPendingDuration] = useState("");
+
   useEffect(() => {
     const fetchTicketDetails = async () => {
       try {
@@ -72,11 +76,12 @@ export default function TicketDetailsView() {
             tacCaseNumber: t.tac_case_number,
             engineerRemarks: t.engineer_remarks || "No remarks yet",
             problemResolution: t.problem_resolution || "Pending resolution",
-            openDate: t.open_date ? new Date(t.open_date).toLocaleDateString() : "",
+            openDate: t.open_date,
             closeDate: t.close_date,
             timeline: timelineData,
             attachments: data.attachments || []
           });
+          setInitialStatus(t.status);
         } else {
           console.error("Failed to fetch ticket");
         }
@@ -89,6 +94,74 @@ export default function TicketDetailsView() {
 
     fetchTicketDetails();
   }, [id]);
+
+  // Timer Logic
+  useEffect(() => {
+    if (!ticket) return;
+
+    const calculateTimers = () => {
+      const now = new Date();
+      
+      // Helper for robust date parsing
+      const getTimestamp = (dateStr) => {
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? 0 : d.getTime();
+      };
+
+      // 1. Ticket Open Duration
+      if (ticket.openDate) {
+        const openTime = getTimestamp(ticket.openDate);
+        if (openTime > 0) {
+            const diff = now.getTime() - openTime;
+            setOpenDuration(formatDuration(diff));
+        }
+      }
+
+      // 2. Pending from Customer Duration
+      let pendingTime = 0;
+      let lastPendingStart = null;
+      
+      // Sort timeline by date
+      const sortedTimeline = [...ticket.timeline].sort((a, b) => getTimestamp(a.date) - getTimestamp(b.date));
+      
+      sortedTimeline.forEach((entry) => {
+        const entryTime = getTimestamp(entry.date);
+        if (entryTime === 0) return;
+
+        if (entry.event.includes("Status changed to Pending from Customer")) {
+          lastPendingStart = entryTime;
+        } else if (lastPendingStart && entry.event.includes("Status changed to")) {
+          // Status changed FROM Pending from Customer to something else
+          pendingTime += entryTime - lastPendingStart;
+          lastPendingStart = null;
+        }
+      });
+
+      // If currently pending, add time since start
+      if (ticket.status === "Pending from Customer" && lastPendingStart) {
+         pendingTime += now.getTime() - lastPendingStart;
+      }
+
+      setCustomerPendingDuration(formatDuration(pendingTime));
+    };
+
+    const interval = setInterval(calculateTimers, 60000); // Update every minute
+    calculateTimers(); // Initial call
+
+    return () => clearInterval(interval);
+  }, [ticket]);
+
+  const formatDuration = (ms) => {
+    if (ms <= 0) return "0m";
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ${hours % 24}h`;
+    if (hours > 0) return `${hours}h ${minutes % 60}m`;
+    return `${minutes}m`;
+  };
 
   const getSeverityColor = (severity) => {
     switch (severity) {
@@ -111,6 +184,8 @@ export default function TicketDetailsView() {
         return "bg-blue-100 text-blue-700 border-blue-200";
       case "In Progress":
         return "bg-purple-100 text-purple-700 border-purple-200";
+      case "Pending from Customer":
+        return "bg-orange-100 text-orange-700 border-orange-200";
       case "Closed":
         return "bg-gray-100 text-gray-700 border-gray-200";
       default:
@@ -125,9 +200,14 @@ export default function TicketDetailsView() {
         hour: "2-digit", minute: "2-digit", hour12: true,
       });
 
+      let eventMsg = "Ticket details updated";
+      if (ticket.status !== initialStatus) {
+        eventMsg = `Status changed to ${ticket.status}`;
+      }
+
       const timelineEntry = {
         date: now,
-        event: "Ticket details updated",
+        event: eventMsg,
         user: currentUserName,
         type: "update"
       };
@@ -150,6 +230,7 @@ export default function TicketDetailsView() {
 
       if (response.ok) {
         setTicket(prev => ({ ...prev, timeline: updatedTimeline }));
+        setInitialStatus(ticket.status); // Update initial status to current
         setIsEditing(false);
         toast.success("Ticket updated successfully!");
       } else {
@@ -391,6 +472,25 @@ export default function TicketDetailsView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {/* Timers */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-center gap-3">
+                <Clock className="w-6 h-6 text-blue-600" />
+                <div>
+                  <p className="text-sm text-blue-800 font-medium">Ticket Open Duration</p>
+                  <p className="text-xl font-bold text-blue-900">{openDuration}</p>
+                </div>
+             </div>
+
+             <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg flex items-center gap-3">
+                <Clock className="w-6 h-6 text-orange-600" />
+                <div>
+                  <p className="text-sm text-orange-800 font-medium">Pending from Customer</p>
+                  <p className="text-xl font-bold text-orange-900">{customerPendingDuration}</p>
+                </div>
+             </div>
+          </div>
+
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex flex-wrap items-center gap-6 mb-6">
               <div>
@@ -404,8 +504,9 @@ export default function TicketDetailsView() {
                     className="input"
                   >
                     <option value="Open">Open</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Closed">Closed</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Pending from Customer">Pending from Customer</option>
+                <option value="Closed">Closed</option>
                   </select>
                 ) : (
                   <span

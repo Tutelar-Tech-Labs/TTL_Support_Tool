@@ -101,7 +101,10 @@ export const createOpportunity = async (req, res) => {
 export const getOpportunities = async (req, res) => {
   try {
     const [opportunities] = await db.query(`
-      SELECT * FROM sales_opportunities ORDER BY created_at DESC
+      SELECT s.*, s4.commercial_closure 
+      FROM sales_opportunities s
+      LEFT JOIN sales_stage_4 s4 ON s.id = s4.opportunity_id
+      ORDER BY s.created_at DESC
     `);
     res.json(opportunities);
   } catch (error) {
