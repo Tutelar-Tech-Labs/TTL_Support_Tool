@@ -9,17 +9,6 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "bcrypt": "^5.1.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "googleapis": "^129.0.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.0.3",
-    "multer": "^1.4.5-lts.1",
-    "mysql2": "^3.6.5"
-=======
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
@@ -33,7 +22,6 @@
     "multer": "^2.0.2",
     "mysql2": "^3.16.1",
     "zod": "^3.24.1"
->>>>>>> 8ab38add65cb6c2995cfc83dfbfa5d793287fa4f
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

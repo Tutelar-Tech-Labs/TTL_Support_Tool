@@ -1,10 +1,7 @@
 import { db } from "../config/db.js";
 import fs from "fs";
 import path from "path";
-<<<<<<< HEAD
 import { uploadFileToDrive } from "../services/googleDriveService.js";
-=======
->>>>>>> 8ab38add65cb6c2995cfc83dfbfa5d793287fa4f
 
 export const createTicket = async (req, res) => {
   try {
@@ -77,7 +74,6 @@ export const createTicket = async (req, res) => {
 
     // Handle attachment
     if (req.file) {
-<<<<<<< HEAD
       console.log(`Processing attachment: ${req.file.originalname}`);
       let filePath = req.file.path; // Default to temp path
 
@@ -118,25 +114,11 @@ export const createTicket = async (req, res) => {
         }
       }
 
-=======
-      const targetDir = `uploads/tickets/${ticketId}`;
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
-      }
-
-      const targetPath = path.join(targetDir, req.file.originalname);
-      fs.renameSync(req.file.path, targetPath);
-
->>>>>>> 8ab38add65cb6c2995cfc83dfbfa5d793287fa4f
       await db.query(
         `INSERT INTO ticket_attachments (
           ticket_id, file_name, file_path, file_type, file_size
         ) VALUES (?, ?, ?, ?, ?)`,
-<<<<<<< HEAD
         [ticketId, req.file.originalname, filePath, req.file.mimetype, req.file.size]
-=======
-        [ticketId, req.file.originalname, targetPath, req.file.mimetype, req.file.size]
->>>>>>> 8ab38add65cb6c2995cfc83dfbfa5d793287fa4f
       );
     }
 

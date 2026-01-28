@@ -200,12 +200,8 @@ export const exportEmployeeCSV = async (req, res, next) => {
       
       if (isGoogleDriveConfigured()) {
         // Upload asynchronously without blocking the response
-<<<<<<< HEAD
         const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID_CSV;
         uploadCSVToDrive(csv, filename, folderId)
-=======
-        uploadCSVToDrive(csv, filename)
->>>>>>> 8ab38add65cb6c2995cfc83dfbfa5d793287fa4f
           .then(result => {
             if (result.success) {
               console.log(`✅ CSV uploaded to Google Drive: ${filename}`);

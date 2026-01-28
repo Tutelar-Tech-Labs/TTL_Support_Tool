@@ -1,9 +1,5 @@
 @echo off
-<<<<<<< HEAD
 echo Starting Unified Ticketing ^& Attendance System...
-=======
-echo Starting Unified Ticketing & Attendance System...
->>>>>>> 8ab38add65cb6c2995cfc83dfbfa5d793287fa4f
 
 echo Starting Backend (Port 5000)...
 start "Unified Backend" /D "backend" nodemon server.js

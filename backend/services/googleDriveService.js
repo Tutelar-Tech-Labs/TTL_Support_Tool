@@ -124,7 +124,6 @@ export async function uploadCSVToDrive(csvContent, filename, folderId = null) {
 }
 
 /**
-<<<<<<< HEAD
  * Upload a file (from path) to Google Drive
  * @param {string} filePath - Path to the file on disk
  * @param {string} filename - Name of the file to create in Google Drive
@@ -192,8 +191,6 @@ export async function uploadFileToDrive(filePath, filename, mimeType, folderId =
 }
 
 /**
-=======
->>>>>>> 8ab38add65cb6c2995cfc83dfbfa5d793287fa4f
  * Check if Google Drive is configured
  * @returns {boolean}
  */
