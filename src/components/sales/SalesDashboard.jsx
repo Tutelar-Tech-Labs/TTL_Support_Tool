@@ -39,6 +39,14 @@ export default function SalesDashboard() {
     value: safeOpportunities.filter(o => o.current_stage === i + 1).length
   }));
 
+  // Won vs Lost based on Stage 4 commercial_closure
+  const wonCount = safeOpportunities.filter(o => o.commercial_closure === 'Yes').length;
+  const lostCount = safeOpportunities.filter(o => o.commercial_closure === 'No').length;
+  const wonLostData = [
+    { name: 'Won', value: wonCount },
+    { name: 'Lost', value: lostCount }
+  ];
+
   const productData = Object.entries(
     safeOpportunities.reduce((acc, curr) => {
       const prod = curr.product || 'Unknown';
@@ -147,6 +155,34 @@ export default function SalesDashboard() {
               </ResponsiveContainer>
             </div>
           </div>
+          {/* Won vs Lost Pie Chart */}
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <PieChartIcon className="w-5 h-5 text-red-500" />
+              Won vs Lost
+            </h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={wonLostData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label
+                  >
+                    <Cell fill="#10B981" /> {/* Green for Won */}
+                    <Cell fill="#EF4444" /> {/* Red for Lost */}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
         </div>
 
         {/* Opportunities List */}
