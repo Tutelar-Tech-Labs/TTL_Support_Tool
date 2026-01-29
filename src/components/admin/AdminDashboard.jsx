@@ -40,8 +40,8 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         const [ticketsRes, approvalsRes] = await Promise.all([
-          fetch('http://localhost:5000/api/tickets/dashboard'),
-          fetch('http://localhost:5000/api/approvals')
+          fetch(`${import.meta.env.VITE_API_URL}/api/tickets/dashboard`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/approvals`)
         ]);
 
         const ticketsData = await ticketsRes.json();
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
         // Fetch Sales Approvals if Ram
         if (localStorage.getItem("userEmail") === 'rambalaji@tutelartechlabs.com') {
            try {
-             const salesRes = await fetch('http://localhost:5000/api/sales-approvals');
+             const salesRes = await fetch(`${import.meta.env.VITE_API_URL}/api/sales-approvals`);
              const salesData = await salesRes.json();
              setSalesApprovals(salesData);
            } catch (e) {
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
 
   const handleApprovalAction = async (id, action) => {
     try {
-      let url = `http://localhost:5000/api/approvals/${id}`;
+      let url = `${import.meta.env.VITE_API_URL}/api/approvals/${id}`;
       let method = 'PUT';
       let body = {};
 

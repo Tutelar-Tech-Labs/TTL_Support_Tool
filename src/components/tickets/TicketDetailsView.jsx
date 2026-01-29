@@ -34,7 +34,7 @@ export default function TicketDetailsView() {
   useEffect(() => {
     const fetchTicketDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/tickets/${id}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${id}`);
         const data = await response.json();
 
         if (response.ok) {

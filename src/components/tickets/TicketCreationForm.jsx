@@ -79,7 +79,7 @@ export default function TicketCreationForm() {
         data.append('attachment', formData.attachment);
       }
 
-      const response = await fetch('http://localhost:5000/api/tickets/create', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/create`, {
         method: 'POST',
         body: data
       });

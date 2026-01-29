@@ -66,7 +66,7 @@ export default function EngineerDashboard() {
   const handleRequestAccess = async (ticketId) => {
     const userId = localStorage.getItem("userId");
     try {
-      const response = await fetch('http://localhost:5000/api/approvals/request', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/approvals/request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticketId, requesterId: userId })

@@ -21,7 +21,7 @@ export default function SalesDashboard() {
 
   const fetchOpportunities = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/sales');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/sales`);
       const data = await response.json();
       setOpportunities(data);
     } catch (error) {
