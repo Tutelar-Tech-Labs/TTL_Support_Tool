@@ -236,7 +236,7 @@ export default function SalesOpportunityView() {
 
     try {
       const url = isEditMode 
-        ? `http://localhost:5000/api/sales/${id}/upload`
+        ? `${import.meta.env.VITE_API_URL}/api/sales/${id}/upload`
         : null; 
       
       if (!url) {
@@ -267,7 +267,7 @@ export default function SalesOpportunityView() {
     }
     
     try {
-       const res = await fetch('http://localhost:5000/api/sales-approvals/request', {
+       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/sales-approvals/request`, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ 

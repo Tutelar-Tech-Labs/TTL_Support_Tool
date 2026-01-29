@@ -214,7 +214,7 @@ export default function TicketDetailsView() {
 
       const updatedTimeline = [...ticket.timeline, timelineEntry];
 
-      const response = await fetch(`http://localhost:5000/api/tickets/${ticket.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticket.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -274,7 +274,7 @@ export default function TicketDetailsView() {
     setTicket(updatedTicket);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/tickets/${ticket.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticket.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -321,7 +321,7 @@ export default function TicketDetailsView() {
 
     try {
       // Call update API
-      const response = await fetch(`http://localhost:5000/api/tickets/${ticket.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticket.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -347,7 +347,7 @@ export default function TicketDetailsView() {
 
   const handleTransfer = async (engineer) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/tickets/${ticket.id}/transfer`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticket.id}/transfer`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ assigned_engineer: engineer })
