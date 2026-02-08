@@ -9,6 +9,7 @@ const AttendanceToggle = ({ onAttendanceMarked, refreshTrigger }) => {
   const [isPresent, setIsPresent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [workLocation, setWorkLocation] = useState(''); // New state for location
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const currentMonth = format(new Date(), 'yyyy-MM');
@@ -64,6 +65,9 @@ const AttendanceToggle = ({ onAttendanceMarked, refreshTrigger }) => {
         (att) => att.date === today
       );
       setIsPresent(!!todayAttendance);
+      if (todayAttendance?.workLocation) {
+        setWorkLocation(todayAttendance.workLocation);
+      }
     } catch (error) {
       console.error('Failed to check attendance:', error);
       // Optional: toast.error('Failed to sync attendance status');
@@ -78,9 +82,14 @@ const AttendanceToggle = ({ onAttendanceMarked, refreshTrigger }) => {
       return;
     }
 
+    if (!workLocation) {
+      toast.error('Please select a work location first');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await employeeAPI.markPresent({ date: today }); // Updated formatting to match API expectation if needed
+      const response = await employeeAPI.markPresent({ date: today, workLocation }); // Updated formatting to match API expectation if needed
       toast.success(response.message || 'Attendance marked successfully!');
       setIsPresent(true);
       triggerCelebration(); // Trigger confetti celebration
@@ -131,24 +140,38 @@ const AttendanceToggle = ({ onAttendanceMarked, refreshTrigger }) => {
         </div>
         
         {!isPresent && (
-          <button
-            onClick={handleToggle}
-            disabled={isLoading}
-            className="group relative flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white rounded-xl shadow-lg hover:shadow-primary-500/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none overflow-hidden"
-          >
-            {/* Button Shine Effect */}
-            <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent z-10" />
-            
-            <div className="bg-white/20 p-1.5 rounded-lg group-hover:scale-110 transition-transform">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div className="flex flex-col items-start pr-2">
-              <span className="text-[10px] uppercase tracking-wider font-bold text-primary-100">Ready?</span>
-              <span className="text-base font-bold leading-none">{isLoading ? 'Marking...' : 'Mark Present'}</span>
-            </div>
-          </button>
+          <div className="flex items-center gap-3">
+            <select
+              value={workLocation}
+              onChange={(e) => setWorkLocation(e.target.value)}
+              className="px-4 py-3 rounded-xl border border-gray-200 bg-white text-dark-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all shadow-sm cursor-pointer hover:border-primary-300"
+            >
+              <option value="" disabled>Select Location</option>
+              <option value="Work from Home">Work from Home</option>
+              <option value="Office">Office</option>
+              <option value="Client">Client</option>
+            </select>
+
+            <button
+              onClick={handleToggle}
+              disabled={isLoading || !workLocation}
+              title={!workLocation ? "Please select a work location first" : "Mark attendance"}
+              className="group relative flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white rounded-xl shadow-lg hover:shadow-primary-500/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden"
+            >
+              {/* Button Shine Effect */}
+              <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent z-10" />
+              
+              <div className="bg-white/20 p-1.5 rounded-lg group-hover:scale-110 transition-transform">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="flex flex-col items-start pr-2">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-primary-100">Ready?</span>
+                <span className="text-base font-bold leading-none">{isLoading ? 'Marking...' : 'Mark Present'}</span>
+              </div>
+            </button>
+          </div>
         )}
         
         {isPresent && (

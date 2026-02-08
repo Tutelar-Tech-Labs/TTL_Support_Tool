@@ -8,6 +8,9 @@ import bcrypt from 'bcrypt';
 // Validation schemas
 const attendanceSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+  workLocation: z.enum(['Work from Home', 'Office', 'Client'], {
+    errorMap: () => ({ message: 'Please select a valid work location' }),
+  }),
 });
 
 const worklogSchema = z.object({
@@ -43,6 +46,7 @@ export const markPresent = async (req, res, next) => {
     const attendance = await Attendance.create({
       userId: req.mongoUser._id,
       date: validatedData.date,
+      workLocation: validatedData.workLocation,
     });
     
     res.status(201).json({

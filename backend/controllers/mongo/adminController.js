@@ -255,18 +255,18 @@ export const exportGlobalAttendanceCSV = async (req, res, next) => {
       });
     }
     
-    // 1. Get all employees
-    const employees = await User.find({ role: 'employee' }).sort({ employeeId: 1 }).select('fullName employeeId email');
+    // 1. Get all employees (all roles)
+    const employees = await User.find({}).sort({ employeeId: 1 }).select('fullName employeeId email');
     
     // 2. Get all attendance records in range
     const attendanceRecords = await Attendance.find({
       date: { $gte: from, $lte: to }
     });
     
-    // Create a map for quick lookup: "date_userId" -> status
-    const attendanceMap = new Set();
+    // Create a map for quick lookup: "date_userId" -> attendance record
+    const attendanceMap = new Map();
     attendanceRecords.forEach(record => {
-      attendanceMap.add(`${record.date}_${record.userId.toString()}`);
+      attendanceMap.set(`${record.date}_${record.userId.toString()}`, record);
     });
     
     // 3. Generate dates in range
@@ -280,21 +280,23 @@ export const exportGlobalAttendanceCSV = async (req, res, next) => {
     }
     
     // 4. Build CSV Data
-    // Header: Date | Employee ID | Full Name | Email | Status
+    // Header: Date | Employee ID | Full Name | Email | Status | Work Location
     const csvRows = [];
-    csvRows.push(['Date', 'Employee ID', 'Full Name', 'Email', 'Status'].join(','));
+    csvRows.push(['Date', 'Employee ID', 'Full Name', 'Email', 'Status', 'Work Location'].join(','));
     
     dates.forEach(date => {
         employees.forEach(emp => {
-            const hasAttendance = attendanceMap.has(`${date}_${emp._id.toString()}`);
-            const status = hasAttendance ? 'Present' : 'Absent';
+            const record = attendanceMap.get(`${date}_${emp._id.toString()}`);
+            const status = record ? 'Present' : 'Absent';
+            const workLocation = record ? record.workLocation : 'N/A';
             
             // CSV Safe strings (handle commas)
             const safeName = `"${emp.fullName.replace(/"/g, '""')}"`;
             const safeEmail = `"${emp.email.replace(/"/g, '""')}"`;
             const safeId = `"${emp.employeeId.replace(/"/g, '""')}"`;
+            const safeLocation = `"${workLocation.replace(/"/g, '""')}"`;
             
-            csvRows.push([date, safeId, safeName, safeEmail, status].join(','));
+            csvRows.push([date, safeId, safeName, safeEmail, status, safeLocation].join(','));
         });
     });
     

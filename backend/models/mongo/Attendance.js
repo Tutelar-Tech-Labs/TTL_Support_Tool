@@ -11,6 +11,11 @@ const attendanceSchema = new mongoose.Schema(
       type: String, // Store as YYYY-MM-DD string
       required: true,
     },
+    workLocation: {
+      type: String,
+      enum: ['Work from Home', 'Office', 'Client'],
+      required: true,
+    },
     markedAt: {
       type: Date,
       default: Date.now,
