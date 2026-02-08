@@ -74,6 +74,17 @@ const initTables = async () => {
             }
              await connection.query("ALTER TABLE expense_items MODIFY COLUMN id INT AUTO_INCREMENT");
              
+             // 3. Add rejection_reason column if missing
+             try {
+                 const [cols] = await connection.query("SHOW COLUMNS FROM expense_claims LIKE 'rejection_reason'");
+                 if (cols.length === 0) {
+                     await connection.query("ALTER TABLE expense_claims ADD COLUMN rejection_reason TEXT DEFAULT NULL");
+                     console.log("[Schema Fix] Added rejection_reason column");
+                 }
+             } catch (e) {
+                 console.warn("[Schema Fix] Failed to check/add rejection_reason:", e.message);
+             }
+
              // console.log("[Schema Fix] Verified AUTO_INCREMENT on reimbursement tables");
 
         } catch (fixErr) {
@@ -104,8 +115,14 @@ export const submitClaim = async (req, res) => {
             status = 'Submitted' // Default to Submitted if not specified, but UI will send 'Draft' for drafts
         } = req.body;
 
-        const items = JSON.parse(expense_items);
-        const files = req.files;
+        let items = [];
+        try {
+            items = typeof expense_items === 'string' ? JSON.parse(expense_items) : Array.isArray(expense_items) ? expense_items : [];
+        } catch (e) {
+            await connection.rollback();
+            return res.status(400).json({ message: 'Invalid expense_items payload' });
+        }
+        const files = req.files || [];
 
         // Map 'Pending' to 'Submitted' if legacy frontend sends it, or strictly use 'Submitted'
         const claimStatus = status === 'Save Draft' ? 'Draft' : (status === 'Pending' ? 'Submitted' : status);
@@ -130,6 +147,12 @@ export const submitClaim = async (req, res) => {
                 receiptPath = file.path.replace(/\\/g, '/');
             }
 
+            // Ensure date is formatted for MySQL DATE column (YYYY-MM-DD)
+            let formattedDate = item.transaction_date;
+            if (formattedDate && formattedDate.includes('T')) {
+                formattedDate = formattedDate.split('T')[0];
+            }
+
             await connection.query(
                 `INSERT INTO expense_items (
                 claim_id, expense_type, transaction_date, business_purpose, 
@@ -137,7 +160,7 @@ export const submitClaim = async (req, res) => {
                 project_no, event, domestic_intl, receipt_path
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    claimId, item.expense_type, item.transaction_date, item.business_purpose,
+                    claimId, item.expense_type, formattedDate, item.business_purpose,
                     item.vendor_name, item.city, item.payment_type, item.amount,
                     item.billable, item.project_no, item.event,
                     item.domestic_intl, receiptPath
@@ -169,9 +192,9 @@ export const updateDraft = async (req, res) => {
             expense_items,
             status // 'Draft' or 'Submitted'
         } = req.body;
-
-        const items = JSON.parse(expense_items);
         const files = req.files || [];
+
+        console.log(`[updateDraft] Updating draft ${id} with status ${status}`);
 
         // Check if actually draft
         const [check] = await connection.query(`SELECT status FROM expense_claims WHERE id = ?`, [id]);
@@ -185,6 +208,16 @@ export const updateDraft = async (req, res) => {
         }
 
         const claimStatus = (status === 'Pending' || !status) ? 'Submitted' : status;
+
+        // Parse items safely
+        let items = [];
+        try {
+            items = typeof expense_items === 'string' ? JSON.parse(expense_items) : expense_items;
+            if (!Array.isArray(items)) items = [];
+        } catch (e) {
+            console.error("JSON parse error for expense_items:", e);
+            items = [];
+        }
 
         // 1. Update Header
         console.log(`[updateDraft] Updating draft ${id} with status ${claimStatus}`);
@@ -218,6 +251,12 @@ export const updateDraft = async (req, res) => {
                 receiptPath = file.path.replace(/\\/g, '/');
             }
 
+            // Ensure date is formatted for MySQL DATE column (YYYY-MM-DD)
+            let formattedDate = item.transaction_date;
+            if (formattedDate && formattedDate.includes('T')) {
+                formattedDate = formattedDate.split('T')[0];
+            }
+
             await connection.query(
                 `INSERT INTO expense_items (
                 claim_id, expense_type, transaction_date, business_purpose, 
@@ -225,7 +264,7 @@ export const updateDraft = async (req, res) => {
                 project_no, event, domestic_intl, receipt_path
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    id, item.expense_type, item.transaction_date, item.business_purpose,
+                    id, item.expense_type, formattedDate, item.business_purpose,
                     item.vendor_name, item.city, item.payment_type, item.amount,
                     item.billable, item.project_no, item.event,
                     item.domestic_intl, receiptPath
@@ -379,15 +418,19 @@ export const getClaimDetails = async (req, res) => {
 export const updateClaimStatus = async (req, res) => {
     try {
         const { claimId } = req.params;
-        const { status } = req.body; // 'Approved' or 'Rejected'
+        const { status, rejection_reason } = req.body; // 'Approved' or 'Rejected'
 
         if (!['Approved', 'Rejected'].includes(status)) {
             return res.status(400).json({ message: "Invalid status" });
         }
 
+        if (status === 'Rejected' && !rejection_reason) {
+             return res.status(400).json({ message: "Rejection reason is required" });
+        }
+
         await db.query(
-            `UPDATE expense_claims SET status = ? WHERE id = ?`,
-            [status, claimId]
+            `UPDATE expense_claims SET status = ?, rejection_reason = ? WHERE id = ?`,
+            [status, status === 'Rejected' ? rejection_reason : null, claimId]
         );
 
         res.json({ message: `Claim ${status} successfully` });
@@ -584,7 +627,7 @@ export const exportItemsBulk = async (req, res) => {
             const sheet = workbook.addWorksheet('Selected Expenses');
 
             // Table Header
-            sheet.addRow(['Date', 'Employee', 'Report', 'Type', 'Vendor', 'Business Purpose', 'City', 'Payment', 'Amount', 'Billable']);
+            sheet.addRow(['Date', 'Employee', 'Report', 'Type', 'Client', 'Business Purpose', 'City', 'Payment', 'Amount', 'Billable']);
 
             // Items
             items.forEach(item => {

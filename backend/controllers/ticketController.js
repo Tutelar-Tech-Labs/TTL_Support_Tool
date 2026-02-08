@@ -46,7 +46,7 @@ export const createTicket = async (req, res) => {
 
     const initialTimeline = [
       {
-        date: open_date || new Date().toLocaleString(),
+        date: (open_date ? new Date(open_date) : new Date()).toISOString(),
         event: "Ticket created",
         user: "System",
         type: "create"
@@ -260,7 +260,8 @@ export const updateTicket = async (req, res) => {
     const { id } = req.params;
     const {
       status, severity, issue_subject, issue_description,
-      engineer_remarks, problem_resolution, timeline, rough_notes
+      engineer_remarks, problem_resolution, timeline, rough_notes,
+      close_date
     } = req.body;
 
     let query = `UPDATE tickets SET 
@@ -274,10 +275,18 @@ export const updateTicket = async (req, res) => {
       params.push(typeof timeline === 'string' ? timeline : JSON.stringify(timeline));
     }
 
-    // Fix: If status is Closed, ensure close_date is set to now (if not already set)
-    // If status is NOT Closed (e.g. Re-opened), clear the close_date
+    // Fix: If status is Closed, ensure close_date is set.
+    // Use provided close_date (UTC) if available to avoid DB server timezone issues with NOW()
     if (status === 'Closed') {
-       query += `, close_date = IFNULL(close_date, NOW())`;
+       if (close_date) {
+           const d = new Date(close_date);
+           const validDate = isNaN(d.getTime()) ? new Date() : d;
+           const mysqlDate = validDate.toISOString().slice(0, 19).replace('T', ' ');
+           query += `, close_date = ?`;
+           params.push(mysqlDate);
+       } else {
+           query += `, close_date = IFNULL(close_date, NOW())`;
+       }
     } else {
        query += `, close_date = NULL`;
     }
@@ -285,7 +294,21 @@ export const updateTicket = async (req, res) => {
     query += ` WHERE id = ?`;
     params.push(id);
 
-    await db.query(query, params);
+    try {
+      await db.query(query, params);
+    } catch (err) {
+      const msg = String(err.message || '');
+      if (msg.includes('incorrect enum value') || msg.includes('Invalid ENUM value')) {
+        await db.query(`
+          ALTER TABLE tickets 
+          MODIFY COLUMN status ENUM('Open', 'In Progress', 'Pending from Customer', 'Closed') 
+          DEFAULT 'Open'
+        `);
+        await db.query(query, params);
+      } else {
+        throw err;
+      }
+    }
 
     // Handle new attachment if provided
     if (req.file) {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, TicketPlus, Shield, LogOut, Users, BookOpen, FileText, Briefcase, PieChart, UserPlus, ChevronLeft, ChevronRight, Sun, Moon, ClipboardCheck, UserCog, Pencil } from 'lucide-react';
+import { LayoutDashboard, TicketPlus, Shield, LogOut, Users, BookOpen, FileText, Briefcase, PieChart, UserPlus, ChevronLeft, ChevronRight, Sun, Moon, ClipboardCheck, UserCog, Pencil, Activity } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function Sidebar({ userRole = 'engineer', currentPage, onNavigate, onLogout }) {
@@ -18,9 +18,15 @@ export default function Sidebar({ userRole = 'engineer', currentPage, onNavigate
     },
     {
       icon: Users,
-      label: 'Attendance',
+      label: userRole === 'admin' ? 'Work Report' : 'My Activity',
       page: 'attendance', // Matches route in App.jsx (redirects to /attendance/dashboard)
       roles: ['engineer', 'admin', 'sales'],
+    },
+    {
+      icon: Activity,
+      label: 'My Activity',
+      page: 'admin/activity',
+      roles: ['admin']
     },
     {
       icon: PieChart,

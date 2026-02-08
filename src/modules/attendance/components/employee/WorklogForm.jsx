@@ -19,10 +19,200 @@ const worklogSchema = z.object({
   ticketId: z.string().optional(),
 });
 
+// Analog Clock Time Picker
+const AnalogTimePicker = ({ value, onChange, onClose }) => {
+  const [mode, setMode] = useState('hours'); // 'hours' | 'minutes'
+  const [period, setPeriod] = useState('AM');
+  const [hours, setHours] = useState(12);
+  const [minutes, setMinutes] = useState(0);
+
+  // Parse initial value
+  useEffect(() => {
+    if (value) {
+      const [hStr, mStr] = value.split(':');
+      let h = parseInt(hStr, 10);
+      const m = parseInt(mStr, 10);
+      
+      let p = 'AM';
+      if (h >= 12) {
+        p = 'PM';
+        if (h > 12) h -= 12;
+      }
+      if (h === 0) h = 12;
+
+      setHours(h);
+      setMinutes(m);
+      setPeriod(p);
+    }
+  }, [value]);
+
+  const handleHourSelect = (h) => {
+    setHours(h);
+    setMode('minutes');
+  };
+
+  const handleMinuteSelect = (m) => {
+    setMinutes(m);
+    // Don't auto close, let user confirm or click away
+  };
+
+  const handleSave = () => {
+    let h = hours;
+    if (period === 'PM' && h !== 12) h += 12;
+    if (period === 'AM' && h === 12) h = 0;
+    
+    const timeStr = `${String(h).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    onChange(timeStr);
+    onClose();
+  };
+
+  // Clock Face Component
+  const ClockFace = () => {
+    const radius = 100;
+    const center = 120;
+    const numbers = mode === 'hours' 
+      ? [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      : [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+
+    const currentVal = mode === 'hours' ? hours : minutes;
+    
+    // Calculate hand angle
+    let angle = 0;
+    if (mode === 'hours') {
+      angle = (hours % 12) * 30; // 360 / 12 = 30 deg per hour
+    } else {
+      angle = minutes * 6; // 360 / 60 = 6 deg per minute
+    }
+
+    return (
+      <div className="relative w-60 h-60 mx-auto bg-gray-100 dark:bg-dark-300 rounded-full shadow-inner flex items-center justify-center select-none">
+        {/* Center Dot */}
+        <div className="absolute w-2 h-2 bg-primary-600 rounded-full z-20"></div>
+
+        {/* Clock Hand */}
+        <div 
+          className="absolute w-1 bg-primary-600 origin-bottom z-10 rounded-full"
+          style={{ 
+            height: '80px', 
+            bottom: '50%', 
+            left: 'calc(50% - 2px)',
+            transform: `rotate(${angle}deg)`,
+            transition: 'transform 0.2s ease-out'
+          }}
+        >
+           {/* Tip Circle */}
+           <div className="absolute -top-2 -left-2 w-5 h-5 bg-primary-600 rounded-full border-2 border-white dark:border-dark-200"></div>
+        </div>
+
+        {/* Numbers */}
+        {numbers.map((num, i) => {
+          // Position calculation
+          // 0 deg is at 12 o'clock (top)
+          // i * 30 degrees for hours
+          const deg = mode === 'hours' ? i * 30 : (i * 30); // Positions match for 12 items
+          const radian = (deg - 90) * (Math.PI / 180);
+          const x = center + radius * Math.cos(radian);
+          const y = center + radius * Math.sin(radian);
+
+          // Adjust for container size (240px)
+          // Center is 120, 120
+          const left = 120 + 85 * Math.cos(radian) - 16; // 85px radius, 16px offset (half width)
+          const top = 120 + 85 * Math.sin(radian) - 16;
+
+          const isSelected = num === currentVal || (mode === 'minutes' && num === 0 && currentVal === 60);
+
+          return (
+            <div
+              key={num}
+              onClick={() => mode === 'hours' ? handleHourSelect(num) : handleMinuteSelect(num)}
+              className={`absolute w-8 h-8 flex items-center justify-center rounded-full cursor-pointer text-sm font-bold transition-colors z-20
+                ${isSelected 
+                  ? 'bg-primary-600 text-white shadow-md scale-110' 
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-primary-100 dark:hover:bg-primary-900/30'
+                }`}
+              style={{ left: `${left}px`, top: `${top}px` }}
+            >
+              {mode === 'minutes' && num < 10 ? `0${num}` : num}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <div 
+      className="absolute top-full left-0 mt-2 p-4 bg-white dark:bg-dark-200 border border-gray-200 dark:border-dark-100 rounded-xl shadow-2xl z-50 w-72 animate-in fade-in zoom-in-95 duration-200"
+      onMouseDown={(e) => e.preventDefault()}
+    >
+      {/* Header Display */}
+      <div className="flex items-center justify-between mb-4 bg-primary-50 dark:bg-primary-900/10 p-3 rounded-lg">
+        <div className="flex items-end gap-1">
+          <button
+            onClick={() => setMode('hours')}
+            className={`text-3xl font-bold leading-none transition-colors ${
+              mode === 'hours' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600'
+            }`}
+          >
+            {String(hours).padStart(2, '0')}
+          </button>
+          <span className="text-3xl font-bold text-gray-400 dark:text-gray-500 leading-none pb-1">:</span>
+          <button
+            onClick={() => setMode('minutes')}
+            className={`text-3xl font-bold leading-none transition-colors ${
+              mode === 'minutes' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600'
+            }`}
+          >
+            {String(minutes).padStart(2, '0')}
+          </button>
+        </div>
+        <div className="flex flex-col gap-1">
+          <button
+            onClick={() => setPeriod('AM')}
+            className={`text-xs font-bold px-2 py-1 rounded ${
+              period === 'AM' ? 'bg-primary-600 text-white' : 'bg-gray-200 dark:bg-dark-300 text-gray-600 dark:text-gray-400'
+            }`}
+          >
+            AM
+          </button>
+          <button
+            onClick={() => setPeriod('PM')}
+            className={`text-xs font-bold px-2 py-1 rounded ${
+              period === 'PM' ? 'bg-primary-600 text-white' : 'bg-gray-200 dark:bg-dark-300 text-gray-600 dark:text-gray-400'
+            }`}
+          >
+            PM
+          </button>
+        </div>
+      </div>
+
+      {/* Clock Face */}
+      <ClockFace />
+
+      {/* Footer Actions */}
+      <div className="flex justify-end mt-4 gap-2">
+        <button 
+          onClick={onClose}
+          className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-dark-300 rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+        <button 
+          onClick={handleSave}
+          className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm transition-colors"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Custom 12h Time Input Component
 const TimeInput = ({ value, onChange, className }) => {
   const [timeStr, setTimeStr] = useState('');
   const [period, setPeriod] = useState('AM');
+  const [showPicker, setShowPicker] = useState(false);
 
   // Parse initial 24h value to 12h
   useEffect(() => {
@@ -53,8 +243,6 @@ const TimeInput = ({ value, onChange, className }) => {
 
     // Auto-insert colon after 2 digits
     if (input.length === 2 && !input.includes(':')) {
-      // if user is typing fast, only append if it doesn't have it
-      // check if deleting
       if (input.length > timeStr.length) {
         input += ':';
       }
@@ -72,8 +260,7 @@ const TimeInput = ({ value, onChange, className }) => {
     if (timeStr.length === 5) {
       const [h, m] = timeStr.split(':').map(Number);
       if (h > 12 || h < 1 || m > 59) {
-        // Invalid time, maybe reset or let validation handle it?
-        // For better UX, we could clamp it but let's just trigger update
+        // Invalid time
       }
     }
     updateParent(timeStr, period);
@@ -88,7 +275,6 @@ const TimeInput = ({ value, onChange, className }) => {
   const updateParent = (tStr, p) => {
     // Convert to 24h for parent
     if (tStr.length !== 5 || !tStr.includes(':')) {
-      // incomplete
       return;
     }
 
@@ -109,11 +295,16 @@ const TimeInput = ({ value, onChange, className }) => {
 
   return (
     <div className={`relative flex items-center ${className}`}>
-      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      {/* Clock Icon Toggle */}
+      <div 
+        className="absolute inset-y-0 left-0 pl-3 flex items-center cursor-pointer z-10 hover:text-primary-600 transition-colors"
+        onClick={() => setShowPicker(!showPicker)}
+      >
+        <svg className="h-5 w-5 text-gray-400 hover:text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
+      
       <input
         type="text"
         value={timeStr}
@@ -122,13 +313,23 @@ const TimeInput = ({ value, onChange, className }) => {
         placeholder="09:00"
         className="input-premium pl-10 pr-16 w-full"
       />
+      
       <button
         type="button"
         onClick={togglePeriod}
-        className="absolute right-1 top-1 bottom-1 px-3 text-xs font-bold bg-primary-50 text-primary-700 rounded hover:bg-primary-100 transition-colors"
+        className="absolute right-1 top-1 bottom-1 px-3 text-xs font-bold bg-primary-50 text-primary-700 rounded hover:bg-primary-100 transition-colors z-10"
       >
         {period}
       </button>
+
+      {/* Analog Time Picker Popup */}
+      {showPicker && (
+        <AnalogTimePicker 
+          value={value || '09:00'} 
+          onChange={onChange}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
     </div>
   );
 };

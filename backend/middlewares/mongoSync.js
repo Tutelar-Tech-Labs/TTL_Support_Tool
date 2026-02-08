@@ -29,6 +29,13 @@ export const syncMongoUser = async (req, res, next) => {
           mongoUser.employeeId = expectedId;
           // Also sync name if changed
           if (req.user.name) mongoUser.fullName = req.user.name;
+          
+          // Sync role if changed (e.g. promoted from employee to admin)
+          const currentRole = req.user.role === 'admin' ? 'admin' : 'employee';
+          if (mongoUser.role !== currentRole) {
+            mongoUser.role = currentRole;
+          }
+          
           await mongoUser.save();
         }
       }

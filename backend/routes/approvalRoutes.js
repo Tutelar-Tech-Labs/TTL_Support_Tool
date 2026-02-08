@@ -4,12 +4,14 @@ import {
   getApprovals, 
   updateApprovalStatus,
   deleteApproval,
-  getMyApprovals
+  getMyApprovals,
+  grantAccess
 } from "../controllers/approvalController.js";
 
 const router = express.Router();
 
 router.post("/request", requestAccess);
+router.post("/grant", grantAccess);
 router.get("/", getApprovals);
 router.put("/:id", updateApprovalStatus);
 router.delete("/:id", deleteApproval);

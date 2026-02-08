@@ -90,3 +90,22 @@ export const getMyApprovals = async (req, res) => {
     res.status(500).json({ message: "Server error fetching my approvals" });
   }
 };
+
+export const grantAccess = async (req, res) => {
+  try {
+    const { ticketId, requesterId } = req.body;
+    const [existing] = await db.query(
+      "SELECT id, access FROM approval WHERE ticket_id = ? AND requester_id = ?",
+      [ticketId, requesterId]
+    );
+    if (existing.length > 0) {
+      await db.query("UPDATE approval SET access = true WHERE id = ?", [existing[0].id]);
+    } else {
+      await db.query("INSERT INTO approval (ticket_id, requester_id, access) VALUES (?, ?, true)", [ticketId, requesterId]);
+    }
+    res.json({ status: "success", message: "Access granted" });
+  } catch (error) {
+    console.error("Grant access error:", error);
+    res.status(500).json({ message: "Server error granting access" });
+  }
+};

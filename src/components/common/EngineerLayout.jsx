@@ -24,6 +24,7 @@ export default function EngineerLayout({ children }) {
     if (path.startsWith('/employee/reimbursement')) return 'employee/reimbursement';
     if (path === '/engineer/dashboard/profile') return 'profile';
     if (path.startsWith('/admin/reimbursement-approval')) return 'admin/reimbursement-approval';
+    if (path.startsWith('/admin/activity')) return 'admin/activity';
     return 'engineer-dashboard';
   };
 
@@ -65,6 +66,9 @@ export default function EngineerLayout({ children }) {
         break;
       case 'admin/reimbursement-approval':
         navigate('/admin/reimbursement-approval');
+        break;
+      case 'admin/activity':
+        navigate('/admin/activity');
         break;
       default:
         break;

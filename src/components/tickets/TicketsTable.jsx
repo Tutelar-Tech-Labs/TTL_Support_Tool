@@ -77,7 +77,7 @@ export function TicketsTable({ tickets, onTicketClick, actionLabel = "View", onA
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-700 dark:text-slate-300">
-                  {ticket.type}
+                  {ticket.type || ticket.ticket_type}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-700 dark:text-slate-300">
                   {ticket.customer}

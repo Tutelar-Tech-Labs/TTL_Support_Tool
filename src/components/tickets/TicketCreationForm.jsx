@@ -88,10 +88,9 @@ export default function TicketCreationForm() {
       const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       
       if (formData.openDate === todayStr) {
-          // Construct local ISO-like string (YYYY-MM-DDTHH:mm:ss.sss)
-          const offset = now.getTimezoneOffset() * 60000;
-          const localISOTime = (new Date(now - offset)).toISOString().slice(0, -1);
-          data.append('open_date', localISOTime);
+          // Send current UTC timestamp. 
+          // The backend and frontend should handle UTC conversion correctly.
+          data.append('open_date', new Date().toISOString());
       } else {
           // If user selected a past date, send it as is (YYYY-MM-DD).
           // MySQL DATETIME will interpret this as YYYY-MM-DD 00:00:00 (Midnight Local)
@@ -126,6 +125,8 @@ export default function TicketCreationForm() {
               customer_email: formData.email,
               issue_description: formData.issueDescription,
               ticket_id: result.ticketNumber || result.ticketId || "Pending",
+              assigned_engineer: formData.assignedEngineer,
+              engineer_phone: formData.engineerPhone,
               reply_to: "support@tutelartechlabs.com"
             };
 

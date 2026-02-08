@@ -29,79 +29,103 @@ export default function TicketDetailsView() {
   const [selectedFile, setSelectedFile] = useState(null);
   const userRole = localStorage.getItem("userRole") || "engineer";
   const currentUserName = localStorage.getItem("userName");
+  const currentUserId = localStorage.getItem("userId");
 
   const [ticket, setTicket] = useState(null);
   const [newUpdate, setNewUpdate] = useState("");
   const [isRoughNotesEditing, setIsRoughNotesEditing] = useState(false);
+  const [hasSharedAccess, setHasSharedAccess] = useState(false);
 
   const [initialStatus, setInitialStatus] = useState("");
   const [openDuration, setOpenDuration] = useState("");
   const [customerPendingDuration, setCustomerPendingDuration] = useState("");
 
-  useEffect(() => {
-    const fetchTicketDetails = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/tickets/${id}`);
-        const data = await response.json();
+  const fetchTicketDetails = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/tickets/${id}`);
+      const data = await response.json();
 
-        if (response.ok) {
-          const t = data.ticket;
-          // Map DB fields to component state
-          let timelineData = [];
-          if (t.timeline) {
-            timelineData = typeof t.timeline === 'string' ? JSON.parse(t.timeline) : t.timeline;
-          } else {
-            // Fallback for old tickets
-            timelineData = [
-              {
-                date: t.open_date ? new Date(t.open_date).toLocaleString() : "",
-                event: "Ticket created",
-                user: "System",
-                type: "create",
-              }
-            ];
-          }
-
-          setTicket({
-            id: t.id,
-            ticketNumber: t.ticket_number,
-            severity: t.severity,
-            status: t.status,
-            type: t.ticket_type,
-            technologyDomain: t.technology_domain,
-            customerName: t.customer_name,
-            customerId: t.customer_serial_no, // Using serial no as ID for now
-            contactName: t.contact_name,
-            phone: t.contact_phone,
-            email: t.contact_email,
-            assignedEngineer: t.assigned_engineer,
-            engineerPhone: t.engineer_phone,
-            engineerEmail: t.engineer_email,
-            issueSubject: t.issue_subject,
-            issueDescription: t.issue_description,
-            oemTacInvolved: t.oem_tac_involved,
-            tacCaseNumber: t.tac_case_number,
-            engineerRemarks: t.engineer_remarks || "No remarks yet",
-            problemResolution: t.problem_resolution || "Pending resolution",
-            roughNotes: t.rough_notes || "",
-            openDate: t.open_date,
-            closeDate: t.close_date,
-            timeline: timelineData,
-            attachments: data.attachments || []
-          });
-          setInitialStatus(t.status);
+      if (response.ok) {
+        const t = data.ticket;
+        // Map DB fields to component state
+        let timelineData = [];
+        if (t.timeline) {
+          timelineData = typeof t.timeline === 'string' ? JSON.parse(t.timeline) : t.timeline;
         } else {
-          console.error("Failed to fetch ticket");
+          // Fallback for old tickets
+          timelineData = [
+            {
+              date: t.open_date ? new Date(t.open_date).toLocaleString() : "",
+              event: "Ticket created",
+              user: "System",
+              type: "create",
+            }
+          ];
         }
-      } catch (error) {
-        console.error("Error fetching ticket details:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
+        setTicket({
+          id: t.id,
+          ticketNumber: t.ticket_number,
+          severity: t.severity,
+          status: t.status,
+          type: t.ticket_type,
+          technologyDomain: t.technology_domain,
+          customerName: t.customer_name,
+          customerId: t.customer_serial_no, // Using serial no as ID for now
+          contactName: t.contact_name,
+          phone: t.contact_phone,
+          email: t.contact_email,
+          assignedEngineer: t.assigned_engineer,
+          engineerPhone: t.engineer_phone,
+          engineerEmail: t.engineer_email,
+          issueSubject: t.issue_subject,
+          issueDescription: t.issue_description,
+          oemTacInvolved: t.oem_tac_involved,
+          tacCaseNumber: t.tac_case_number,
+          engineerRemarks: t.engineer_remarks || "No remarks yet",
+          problemResolution: t.problem_resolution || "Pending resolution",
+          roughNotes: t.rough_notes || "",
+          openDate: t.open_date,
+          closeDate: t.close_date,
+          timeline: timelineData,
+          attachments: data.attachments || []
+        });
+        setInitialStatus(t.status);
+      } else {
+        console.error("Failed to fetch ticket");
+      }
+    } catch (error) {
+      console.error("Error fetching ticket details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchTicketDetails();
   }, [id]);
+
+  // Check shared access
+  useEffect(() => {
+    const checkSharedAccess = async () => {
+        if (!currentUserId || !id) return;
+        try {
+            const response = await fetch(`${API_URL}/api/approvals/my/${currentUserId}`);
+            if (response.ok) {
+                const approvals = await response.json();
+                // Check if current ticket ID exists in approvals with access=true (1)
+                // Note: database might return 1/0 for boolean, or true/false
+                const hasAccess = approvals.some(a => 
+                    String(a.ticket_id) === String(id) && (a.access === 1 || a.access === true)
+                );
+                setHasSharedAccess(hasAccess);
+            }
+        } catch (error) {
+            console.error("Error checking shared access:", error);
+        }
+    };
+    checkSharedAccess();
+  }, [id, currentUserId]);
 
   // Timer Logic
   useEffect(() => {
@@ -110,9 +134,41 @@ export default function TicketDetailsView() {
     const calculateTimers = () => {
       const now = new Date();
       
-      // Helper for robust date parsing
       const getTimestamp = (dateStr) => {
-        const d = new Date(dateStr);
+        if (!dateStr) return 0;
+        if (dateStr instanceof Date) {
+          const t = dateStr.getTime();
+          return isNaN(t) ? 0 : t;
+        }
+        if (typeof dateStr === 'number') {
+          return dateStr;
+        }
+        const s = String(dateStr).trim();
+        if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
+          const d = new Date(s);
+          return isNaN(d.getTime()) ? 0 : d.getTime();
+        }
+        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(s)) {
+          // Assume UTC if coming from backend MySQL DATETIME
+          const d = new Date(s.replace(' ', 'T') + 'Z');
+          return isNaN(d.getTime()) ? 0 : d.getTime();
+        }
+        const localeMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4}),\s*(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)$/i);
+        if (localeMatch) {
+          const mm = parseInt(localeMatch[1], 10) - 1;
+          const dd = parseInt(localeMatch[2], 10);
+          const yyyy = parseInt(localeMatch[3], 10);
+          let hh = parseInt(localeMatch[4], 10);
+          const min = parseInt(localeMatch[5], 10);
+          const sec = localeMatch[6] ? parseInt(localeMatch[6], 10) : 0;
+          const ampm = localeMatch[7].toUpperCase();
+          if (ampm === 'PM' && hh < 12) hh += 12;
+          if (ampm === 'AM' && hh === 12) hh = 0;
+          const d = new Date(yyyy, mm, dd, hh, min, sec);
+          const t = d.getTime();
+          return isNaN(t) ? 0 : t;
+        }
+        const d = new Date(s);
         return isNaN(d.getTime()) ? 0 : d.getTime();
       };
 
@@ -122,20 +178,24 @@ export default function TicketDetailsView() {
         if (openTime > 0) {
             let endTime = now.getTime();
             
-            // If ticket is closed, stop timer at closeDate (or current time if closeDate missing but status closed)
+            // If ticket is closed, stop timer at closeDate
             if (ticket.status === 'Closed') {
                  if (ticket.closeDate) {
                      const closeTime = getTimestamp(ticket.closeDate);
                      if (closeTime > 0) {
                          endTime = closeTime;
                      }
-                 } else {
-                    // Fallback if closeDate is not yet in state (optimistic update should provide it)
-                    // If no closeDate, using now would keep it ticking, so we rely on handleQuickResolve setting closeDate
                  }
             }
 
-            const diff = endTime - openTime;
+            let diff = endTime - openTime;
+            // Handle case where openTime is in the future (e.g. server/client time mismatch)
+            if (diff < 0) {
+                // If the difference is small (e.g. < 1 min), treat as 0. 
+                // If it's large, it might be a timezone issue. 
+                // We'll clamp to 0 to avoid negative durations.
+                diff = 0;
+            }
             setOpenDuration(formatDuration(diff));
         }
       }
@@ -220,10 +280,7 @@ export default function TicketDetailsView() {
   const handleSave = async () => {
     try {
       const now = new Date();
-      const nowStr = now.toLocaleString("en-US", {
-        year: "numeric", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", hour12: true,
-      });
+      const nowStr = now.toISOString();
 
       let eventMsg = "Ticket details updated";
       if (ticket.status !== initialStatus) {
@@ -252,8 +309,24 @@ export default function TicketDetailsView() {
       formData.append('rough_notes', ticket.roughNotes);
       formData.append('timeline', JSON.stringify(updatedTimeline));
       
+      // Ensure close_date is sent if status is Closed
+      if (ticket.status === 'Closed') {
+          // If local ticket already has closeDate (from immediate status change or existing), use it.
+          // Otherwise use nowStr.
+          const closeDateToSend = ticket.closeDate || nowStr;
+          formData.append('close_date', closeDateToSend);
+      }
+
       if (selectedFile) {
         formData.append('attachment', selectedFile);
+      }
+
+      // Exact logic from handleQuickResolve:
+      // If closing, we want to ensure the frontend reflects the close time immediately and permanently.
+      // Although the backend handles close_date, setting it here ensures consistency with the optimistic update approach.
+      let finalTicketState = { ...ticket, timeline: updatedTimeline };
+      if (ticket.status === 'Closed' && !ticket.closeDate) {
+          finalTicketState.closeDate = nowStr;
       }
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticket.id}`, {
@@ -262,26 +335,17 @@ export default function TicketDetailsView() {
       });
 
       if (response.ok) {
-        // Optimistically update closeDate
-        let updatedTicket = { ...ticket, timeline: updatedTimeline };
-        
-        if (ticket.status === 'Closed') {
-             // If closing, set closeDate if not already set
-             if (!ticket.closeDate) {
-                 updatedTicket.closeDate = now.toISOString();
-             }
-        } else {
-             // If re-opening (not Closed), clear closeDate
-             updatedTicket.closeDate = null;
-        }
-        
-        setTicket(updatedTicket);
-        setInitialStatus(ticket.status); // Update initial status to current
+        toast.success("Ticket updated successfully!");
         setIsEditing(false);
         setSelectedFile(null);
-        toast.success("Ticket updated successfully!");
-        // Refresh ticket to get new attachment
-        window.location.reload();
+        
+        // Update local state immediately like handleQuickResolve
+        setTicket(finalTicketState);
+        setInitialStatus(ticket.status);
+
+        // DO NOT refresh from backend immediately to avoid flickering/timezone issues.
+        // The local state is authoritative for the user who made the change.
+        // await fetchTicketDetails();
       } else {
         toast.error("Failed to update ticket");
       }
@@ -292,19 +356,42 @@ export default function TicketDetailsView() {
   };
 
   const handleStatusChange = (newStatus) => {
-    setTicket((prev) => ({
-      ...prev,
-      status: newStatus,
-    }));
+    const now = new Date().toISOString();
+    // Optimistically update status and closeDate
+    setTicket((prev) => {
+      const updated = {
+        ...prev,
+        status: newStatus
+      };
+      
+      if (newStatus === 'Closed') {
+         // If closing, set closeDate if not already set
+         if (!updated.closeDate) {
+             updated.closeDate = now;
+         }
+      } else {
+         // If re-opening (not Closed), clear closeDate
+         updated.closeDate = null;
+      }
+      return updated;
+    });
   };
+
+  // Auto-refresh logic for shared tickets
+  useEffect(() => {
+    if (isEditing) return; // Don't refresh while editing to avoid losing changes
+
+    const pollInterval = setInterval(() => {
+        fetchTicketDetails();
+    }, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [id, isEditing]); // Re-create interval if id or isEditing changes
 
   const handleQuickResolve = async () => {
     if (!window.confirm("Are you sure you want to mark this ticket as resolved?")) return;
     
-    const now = new Date().toLocaleString("en-US", {
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit", hour12: true,
-    });
+    const now = new Date().toISOString();
 
     const updatedTicket = {
       ...ticket,
@@ -352,10 +439,7 @@ export default function TicketDetailsView() {
   const handleAddUpdate = async () => {
     if (!newUpdate.trim()) return;
 
-    const now = new Date().toLocaleString("en-US", {
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit", hour12: true,
-    });
+    const now = new Date().toISOString();
 
     const updateEntry = {
       date: now,
@@ -425,18 +509,37 @@ export default function TicketDetailsView() {
     }
   };
 
-  const handleTransfer = async (engineer) => {
+  const [engineers, setEngineers] = useState([]);
+  useEffect(() => {
+    const fetchEngineers = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/auth/users`);
+        const users = await res.json();
+        const engs = Array.isArray(users) ? users.filter(u => (u.role || '').toLowerCase() === 'engineer') : [];
+        setEngineers(engs);
+      } catch (e) {
+        console.error("Failed to load engineers:", e);
+      }
+    };
+    fetchEngineers();
+  }, []);
+
+  const handleShare = async (engineer) => {
     try {
-      const response = await fetch(`${API_URL}/api/tickets/${ticket.id}/transfer`, {
-        method: 'PUT',
+      const target = engineers.find(e => e.name === engineer);
+      if (!target) {
+        toast.error("Engineer not found");
+        return;
+      }
+      const response = await fetch(`${API_URL}/api/approvals/grant`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assigned_engineer: engineer })
+        body: JSON.stringify({ ticketId: ticket.id, requesterId: target.id })
       });
 
       if (response.ok) {
         setTicket((prev) => ({
           ...prev,
-          assignedEngineer: engineer,
           timeline: [
             ...prev.timeline,
             {
@@ -448,30 +551,25 @@ export default function TicketDetailsView() {
                 minute: "2-digit",
                 hour12: true,
               }),
-              event: `Transferred to ${engineer}`,
+              event: `Shared with ${engineer}`,
               user: currentUserName,
               type: "assign",
             },
           ],
         }));
         setShowTransferDropdown(false);
-        toast.success(`Ticket transferred to ${engineer} ✨`);
+        toast.success(`Access shared with ${engineer}`);
       } else {
-        toast.error("Failed to transfer ticket");
+        const data = await response.json();
+        toast.error(data.message || "Failed to share access");
       }
     } catch (error) {
-      console.error("Error transferring ticket:", error);
-      toast.error("Error transferring ticket");
+      console.error("Error sharing access:", error);
+      toast.error("Error sharing access");
     }
   };
 
-  const availableEngineers = [
-    "Sarah Johnson",
-    "Mike Chen",
-    "Alex Rodriguez",
-    "Emily White",
-    "David Kim",
-  ];
+  const availableEngineers = engineers.map(e => e.name);
 
   if (loading) {
     return <div className="p-8 text-center">Loading ticket details...</div>;
@@ -481,7 +579,8 @@ export default function TicketDetailsView() {
     return <div className="p-8 text-center text-red-600">Ticket not found</div>;
   }
 
-  const canEdit = userRole === "admin" || (userRole === "engineer" && ticket.assignedEngineer === currentUserName);
+  const canEdit = userRole === "admin" || (userRole === "engineer" && ticket.assignedEngineer === currentUserName) || hasSharedAccess;
+  const canShare = userRole === "admin" || (userRole === "engineer" && ticket.assignedEngineer === currentUserName);
 
 
   return (
@@ -502,6 +601,7 @@ export default function TicketDetailsView() {
         </div>
         {canEdit && (
           <div className="flex gap-3">
+            {canShare && (
             <div className="relative">
               <button
                 onClick={(e) => {
@@ -511,7 +611,7 @@ export default function TicketDetailsView() {
                 className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-servicenow-dark text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-servicenow"
               >
                 <ArrowRightCircle className="w-4 h-4" />
-                Transfer
+                Share
               </button>
 
               {showTransferDropdown && (
@@ -519,7 +619,7 @@ export default function TicketDetailsView() {
                   {availableEngineers.map((engineer) => (
                     <button
                       key={engineer}
-                      onClick={() => handleTransfer(engineer)}
+                      onClick={() => handleShare(engineer)}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-servicenow-dark"
                     >
                       {engineer}
@@ -528,6 +628,7 @@ export default function TicketDetailsView() {
                 </div>
               )}
             </div>
+            )}
 
             {!isEditing ? (
               <button

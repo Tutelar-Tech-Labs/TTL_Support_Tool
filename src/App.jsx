@@ -18,6 +18,7 @@ import Profile from "./components/profile/Profile"; // Updated import
 import AdminEmployeeDetail from "./modules/attendance/pages/AdminEmployeeDetail";
 import EmployeeClaimPage from "./modules/reimbursement/pages/EmployeeClaimPage";
 import AdminReimbursementPage from "./modules/reimbursement/pages/AdminReimbursementPage";
+import AdminActivityPage from "./modules/attendance/pages/AdminActivityPage";
 
 
 const SalesRoute = ({ children }) => {
@@ -110,6 +111,11 @@ export default function App() {
         <Route path="/admin/reimbursement-approval" element={
           <EngineerLayout>
             <AdminReimbursementPage />
+          </EngineerLayout>
+        } />
+        <Route path="/admin/activity" element={
+          <EngineerLayout>
+            <AdminActivityPage />
           </EngineerLayout>
         } />
       </Routes>

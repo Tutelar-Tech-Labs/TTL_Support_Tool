@@ -12,7 +12,7 @@ export const getAllEmployees = async (req, res, next) => {
     const { search, sortBy = 'createdAt', order = 'desc' } = req.query;
     
     // Build query
-    const query = { role: 'employee' };
+    const query = {};
     
     if (search) {
       query.$or = [
@@ -55,7 +55,6 @@ export const getEmployeeById = async (req, res, next) => {
   try {
     const employee = await User.findOne({
       _id: req.params.id,
-      role: 'employee',
     });
     
     if (!employee) {
@@ -162,10 +161,9 @@ export const exportEmployeeCSV = async (req, res, next) => {
       });
     }
     
-    // Get employee
+    // Get employee (Allow both employees and admins)
     const employee = await User.findOne({
       _id: req.params.id,
-      role: 'employee',
     });
     
     if (!employee) {
@@ -339,8 +337,8 @@ export const exportGlobalAttendanceCSV = async (req, res, next) => {
 // @access  Private (Admin)
 export const getDashboardStats = async (req, res, next) => {
   try {
-    // 1. Total Employees
-    const totalEmployees = await User.countDocuments({ role: 'employee' });
+    // 1. Total Users (Employees + Admins)
+    const totalEmployees = await User.countDocuments({});
     
     // 2. Active Today
     const today = new Date().toISOString().split('T')[0];

@@ -8,6 +8,8 @@ const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostna
 const ClaimDetailsModal = ({ claim, onClose, onAction }) => {
     const [details, setDetails] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState("");
 
     useEffect(() => {
         if (claim) {
@@ -31,6 +33,15 @@ const ClaimDetailsModal = ({ claim, onClose, onAction }) => {
     const handleExport = (type) => { // 'excel'
         const url = `${API_URL}/api/reimbursement/export/excel/${claim.id}`;
         window.open(url, '_blank');
+    };
+
+    const confirmRejection = () => {
+        if (!rejectionReason.trim()) {
+            toast.error("Please enter a reason for rejection");
+            return;
+        }
+        onAction(claim.id, 'Rejected', rejectionReason);
+        setShowRejectModal(false);
     };
 
     return (
@@ -109,7 +120,10 @@ const ClaimDetailsModal = ({ claim, onClose, onAction }) => {
 
                     <div className="flex gap-3">
                         <button
-                            onClick={() => onAction(claim.id, 'Rejected')}
+                            onClick={() => {
+                                setRejectionReason("");
+                                setShowRejectModal(true);
+                            }}
                             className="px-5 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 font-medium rounded-lg transition"
                         >
                             Reject
@@ -123,6 +137,38 @@ const ClaimDetailsModal = ({ claim, onClose, onAction }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Rejection Reason Modal */}
+            {showRejectModal && (
+                <div className="fixed inset-0 bg-black/50 dark:bg-black/80 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Reject Claim</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            Please provide a reason for rejecting this claim. This will be visible to the employee.
+                        </p>
+                        <textarea
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder="Enter rejection reason..."
+                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none resize-none h-32"
+                        />
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                onClick={() => setShowRejectModal(false)}
+                                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmRejection}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition"
+                            >
+                                Confirm Rejection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

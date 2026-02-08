@@ -27,6 +27,11 @@ const AdminReimbursementPage = () => {
     const [selectedItems, setSelectedItems] = useState(new Set());
     const [allEmployees, setAllEmployees] = useState([]);
 
+    // Rejection Logic
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [rejectingClaimId, setRejectingClaimId] = useState(null);
+
     const userEmail = localStorage.getItem("userEmail");
 
     // Double check email protection on frontend (backend handles it too logically, but good for UX)
@@ -51,53 +56,32 @@ const AdminReimbursementPage = () => {
     };
 
     useEffect(() => {
+        let interval;
         if (activeTab === 'pending') {
-            fetchPendingClaims();
+            fetchPendingClaims(false);
+            interval = setInterval(() => fetchPendingClaims(true), 10000);
         } else {
-            fetchApprovedExpenses();
+            fetchApprovedExpenses(false);
             fetchAllEmployees();
         }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
     }, [activeTab]);
 
     useEffect(() => {
         // Handle deep linking from Dashboard
         if (location.state?.claimId) {
-            // If we have a claimId, we should try to load it. 
-            // Since we might be on 'approved' tab by default now, but the link might be for a pending claim or vice versa.
-            // Usually dashboard links to Pending Claims for approval.
-            // Let's assume dashboard sends us to pending.
-
             const linkClaimId = location.state.claimId;
-            // We need to fetch this specific claim details if not in list, OR just fetch details directly.
-            // Simplified approach: Set active tab to 'pending' (if that's where we expect it) or just fetch details.
-            // If the claim is pending, we probably want to see the pending list AND the modal.
-
             setActiveTab('pending');
-            // We need to wait for claims to load? Or just fetch this single claim context?
-            // Ideally we find it in the list. But list loads async.
-            // Let's rely on fetchPendingClaims to populate list, then find it? 
-            // Or better: Just fetch the single claim metadata for the modal header if needed, or if handleViewDetails only needs the ID?
-            // handleViewDetails needs a 'claim' object for header info (report_name, employee_name).
-
-            // Let's try to fetch the single claim first to open the modal.
             fetchSingleClaimAndOpen(linkClaimId);
         }
     }, [location.state]);
 
     const fetchSingleClaimAndOpen = async (id) => {
         try {
-            // We might need a new endpoint or reuse pending/details?
-            // Actually, handleViewDetails calls /details/:id for items.
-            // But we need the claim metadata (total amount, names) for the modal header.
-            // Let's try to find it in the pending list if loaded, else fetch it.
-
-            // For now, let's fetch pending claims first, then find it.
-            if (claims.length === 0) await fetchPendingClaims();
-
-            // Wait a bit or chain it? use helper.
-            // Better: separate endpoint for claim metadata? 
-            // Or just fetch all pending and find() it.
-            const res = await axios.get(`${API_URL}/api/reimbursement/pending`); // We are re-fetching here to be sure.
+            if (claims.length === 0) await fetchPendingClaims(false);
+            const res = await axios.get(`${API_URL}/api/reimbursement/pending?_t=${Date.now()}`);
             setClaims(res.data);
             const found = res.data.find(c => c.id === parseInt(id));
             if (found) {
@@ -108,30 +92,30 @@ const AdminReimbursementPage = () => {
         }
     };
 
-    const fetchPendingClaims = async () => {
+    const fetchPendingClaims = async (isBackground = false) => {
         try {
-            setLoading(true);
-            const res = await axios.get(`${API_URL}/api/reimbursement/pending`);
+            if (!isBackground) setLoading(true);
+            const res = await axios.get(`${API_URL}/api/reimbursement/pending?_t=${Date.now()}`);
             setClaims(res.data);
         } catch (error) {
             console.error("Error fetching claims:", error);
-            toast.error("Failed to load pending claims");
+            if (!isBackground) toast.error("Failed to load pending claims");
         } finally {
-            setLoading(false);
+            if (!isBackground) setLoading(false);
         }
     };
 
-    const fetchApprovedExpenses = async () => {
+    const fetchApprovedExpenses = async (isBackground = false) => {
         try {
-            setApprovedLoading(true);
+            if (!isBackground) setApprovedLoading(true);
             // Fetching flat list of approved expenses
-            const res = await axios.get(`${API_URL}/api/reimbursement/approved-expenses`);
+            const res = await axios.get(`${API_URL}/api/reimbursement/approved-expenses?_t=${Date.now()}`);
             setApprovedData(res.data);
         } catch (error) {
             console.error("Error fetching approved expenses:", error);
-            toast.error("Failed to load approved data");
+            if (!isBackground) toast.error("Failed to load approved data");
         } finally {
-            setApprovedLoading(false);
+            if (!isBackground) setApprovedLoading(false);
         }
     };
 
@@ -148,18 +132,35 @@ const AdminReimbursementPage = () => {
         }
     };
 
-    const handleAction = async (claimId, status) => {
-        if (!window.confirm(`Are you sure you want to ${status} this claim?`)) return;
+    const handleAction = async (claimId, status, reason = null) => {
+        if (status !== 'Rejected' && !window.confirm(`Are you sure you want to ${status} this claim?`)) return;
 
         try {
-            await axios.put(`${API_URL}/api/reimbursement/${claimId}/status`, { status });
+            await axios.put(`${API_URL}/api/reimbursement/${claimId}/status`, { status, rejection_reason: reason });
             toast.success(`Claim ${status} successfully`);
             fetchPendingClaims(); // Refresh list
             setSelectedClaim(null); // Close modal
+            setShowRejectModal(false); // Close reject modal if open
+            setRejectionReason("");
+            setRejectingClaimId(null);
         } catch (error) {
             console.error("Action error:", error);
             toast.error("Failed to update status");
         }
+    };
+
+    const initiateRejection = (claimId) => {
+        setRejectingClaimId(claimId);
+        setRejectionReason("");
+        setShowRejectModal(true);
+    };
+
+    const confirmRejection = () => {
+        if (!rejectionReason.trim()) {
+            toast.error("Please enter a reason for rejection");
+            return;
+        }
+        handleAction(rejectingClaimId, 'Rejected', rejectionReason);
     };
 
     const handleExport = (type) => {
@@ -345,20 +346,6 @@ const AdminReimbursementPage = () => {
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleAction(claim.id, 'Approved')}
-                                                        className="p-2 bg-green-900/30 hover:bg-green-900/50 rounded-lg text-green-400 transition"
-                                                        title="Approve"
-                                                    >
-                                                        <Check className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleAction(claim.id, 'Rejected')}
-                                                        className="p-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 rounded-lg text-red-600 dark:text-red-400 transition"
-                                                        title="Reject"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -539,7 +526,7 @@ const AdminReimbursementPage = () => {
                                                             <tr>
                                                                 <th className="p-4">Date</th>
                                                                 <th className="p-4">Expense Type</th>
-                                                                <th className="p-4">Vendor</th>
+                                                                <th className="p-4">Client</th>
                                                                 <th className="p-4">Report</th>
                                                                 <th className="p-4 text-right">Amount</th>
                                                             </tr>
@@ -692,7 +679,7 @@ const AdminReimbursementPage = () => {
 
                             <div className="flex gap-3">
                                 <button
-                                    onClick={() => handleAction(selectedClaim.id, 'Rejected')}
+                                    onClick={() => initiateRejection(selectedClaim.id)}
                                     className="px-5 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 font-medium rounded-lg transition"
                                 >
                                     Reject
@@ -704,6 +691,38 @@ const AdminReimbursementPage = () => {
                                     Approve Claim
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Rejection Reason Modal */}
+            {showRejectModal && (
+                <div className="fixed inset-0 bg-black/50 dark:bg-black/80 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Reject Claim</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            Please provide a reason for rejecting this claim. This will be visible to the employee.
+                        </p>
+                        <textarea
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder="Enter rejection reason..."
+                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none resize-none h-32"
+                        />
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                onClick={() => { setShowRejectModal(false); setRejectionReason(""); setRejectingClaimId(null); }}
+                                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmRejection}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition"
+                            >
+                                Confirm Rejection
+                            </button>
                         </div>
                     </div>
                 </div>

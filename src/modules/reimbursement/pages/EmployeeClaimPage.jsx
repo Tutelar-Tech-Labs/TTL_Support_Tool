@@ -40,21 +40,29 @@ const EmployeeClaimPage = () => {
     const [currentItem, setCurrentItem] = useState(initialItemState);
 
     useEffect(() => {
+        let interval;
         if (activeTab === 'history') {
-            fetchMyClaims();
+            fetchMyClaims(false); // Initial load with spinner
+            // Poll every 10 seconds for real-time status updates (Approved/Rejected)
+            interval = setInterval(() => fetchMyClaims(true), 10000); // Background poll
         }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
     }, [activeTab]);
 
-    const fetchMyClaims = async () => {
+    const fetchMyClaims = async (isBackground = false) => {
         try {
-            setLoading(true);
-            const res = await axios.get(`${API_URL}/api/reimbursement/my-claims/${employeeId}`);
+            if (!isBackground) setLoading(true);
+            // Add timestamp to prevent caching
+            const res = await axios.get(`${API_URL}/api/reimbursement/my-claims/${employeeId}?_t=${Date.now()}`);
             setClaims(res.data);
         } catch (error) {
             console.error("Error fetching claims:", error);
-            toast.error("Failed to load claims history");
+            // Don't show toast on background polling errors to avoid annoyance
+            if (!isBackground) toast.error("Failed to load claims history");
         } finally {
-            setLoading(false);
+            if (!isBackground) setLoading(false);
         }
     };
 
@@ -141,8 +149,8 @@ const EmployeeClaimPage = () => {
 
     const addExpenseItem = () => {
         // Basic validation
-        if (!currentItem.expense_type || !currentItem.amount || !currentItem.transaction_date || !currentItem.vendor_name) {
-            toast.error("Please fill required fields (*)");
+        if (!currentItem.expense_type || !currentItem.amount || !currentItem.transaction_date || !currentItem.vendor_name || !currentItem.receipt) {
+            toast.error("Please fill required fields (*) and attach invoice");
             return;
         }
 
@@ -177,6 +185,14 @@ const EmployeeClaimPage = () => {
             toast.error("Please add at least one expense item");
             return;
         }
+
+        // Validate that all items have a receipt (either new file or existing path)
+        const missingReceipt = expenseItems.some(item => !item.receipt && !item.receipt_path);
+        if (missingReceipt) {
+            toast.error("All expense items must have an invoice/receipt attached");
+            return;
+        }
+
         if (!reportName) {
             toast.error("Please enter a Report Name");
             return;
@@ -216,7 +232,16 @@ const EmployeeClaimPage = () => {
                 response = await axios.post(`${API_URL}/api/reimbursement/submit`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
-                toast.success(status === 'Submitted' ? "Claim submitted successfully!" : "Draft saved successfully!");
+
+                if (status === 'Save Draft') {
+                    toast.success("Draft saved successfully!");
+                    // IMPORTANT: Set editing ID so subsequent saves/submits update this draft instead of creating new one
+                    if (response.data && response.data.claimId) {
+                        setEditingClaimId(response.data.claimId);
+                    }
+                } else {
+                    toast.success("Claim submitted successfully!");
+                }
             }
 
             // Important: Logic to handle state after Save vs Submit
@@ -336,7 +361,7 @@ const EmployeeClaimPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Vendor Name *</label>
+                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Client Name *</label>
                                     <input
                                         type="text"
                                         name="vendor_name"
@@ -622,6 +647,12 @@ const EmployeeClaimPage = () => {
                             </div>
 
                             <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                                {selectedClaim.status === 'Rejected' && selectedClaim.rejection_reason && (
+                                    <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                        <h3 className="text-sm font-bold text-red-800 dark:text-red-300 mb-1">Rejection Reason</h3>
+                                        <p className="text-sm text-red-700 dark:text-red-200">{selectedClaim.rejection_reason}</p>
+                                    </div>
+                                )}
                                 {detailsLoading ? (
                                     <div className="text-center py-8 text-gray-500">Loading details...</div>
                                 ) : (
@@ -634,7 +665,7 @@ const EmployeeClaimPage = () => {
                                                 </div>
                                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-4 text-sm text-gray-700 dark:text-gray-300">
                                                     <div><span className="text-gray-500">Date:</span> {new Date(item.transaction_date).toLocaleDateString()}</div>
-                                                    <div><span className="text-gray-500">Vendor:</span> {item.vendor_name}</div>
+                                                    <div><span className="text-gray-500">Client:</span> {item.vendor_name}</div>
                                                     <div><span className="text-gray-500">City:</span> {item.city || '-'}</div>
                                                     <div><span className="text-gray-500">Purpose:</span> {item.business_purpose || '-'}</div>
                                                     <div><span className="text-gray-500">Payment:</span> {item.payment_type}</div>

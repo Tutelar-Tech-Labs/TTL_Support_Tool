@@ -95,6 +95,17 @@ export default function AdminDashboard() {
       }
     };
     fetchData();
+    const interval = setInterval(() => {
+        // Poll for pending reimbursements only if user is admin
+        if (localStorage.getItem("userEmail")?.toLowerCase() === 'rambalaji@tutelartechlabs.com') {
+             fetch(`${import.meta.env.VITE_API_URL}/api/reimbursement/pending?_t=${Date.now()}`)
+                .then(res => res.json())
+                .then(data => setReimbursements(data))
+                .catch(e => console.error("Polling error:", e));
+        }
+    }, 10000); // 10 seconds polling
+
+    return () => clearInterval(interval);
   }, [navigate]);
 
   const handleApprovalAction = async (id, action) => {
@@ -150,25 +161,17 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleReimbursementAction = async (id, status) => {
+  const handleReimbursementAction = async (id, status, reason = null) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reimbursement/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, rejection_reason: reason })
       });
 
       if (response.ok) {
-        // Remove from list if processed (since we usually only show pending or we can update status to show history)
-        // For dashboard quick view, maybe we just remove them or mark them. 
-        // Let's remove them from the pending list for now to keep it clean, or update status.
-        // The API might return the updated object, but let's just filter it out or update it.
-        // If we want to show history, we update. If we want to show 'Pending' only, filtering is better?
-        // But the previous tabs show 'Pending'/'Approved' states?
-        // Actually Sales Approvals tab shows all (?) or just Pending?
-        // Logic: const salesApprovalsCount = salesApprovals.filter(a => a.status === 'Pending').length;
-        // So it likely holds all.
-        setReimbursements(reimbursements.map(r => r.id === id ? { ...r, status } : r));
+        // Remove from list if processed to reflect "auto-refresh" behavior
+        setReimbursements(reimbursements.filter(r => r.id !== id));
         toast.success(`Claim ${status} successfully`);
         setSelectedClaim(null);
       } else {
@@ -727,26 +730,15 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${claim.status === 'Approved' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
-                            claim.status === 'Rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                            claim.status === 'Rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
+                              'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
                             }`}>
                             {claim.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          {claim.status !== 'Approved' && claim.status !== 'Rejected' && (
-                            <div className="flex justify-end gap-2">
-                              <button
-                                onClick={() => handleReimbursementAction(claim.id, 'Approved')}
-                                className="text-green-600 hover:text-green-900 bg-green-50 px-3 py-1 rounded-md dark:bg-green-900/20 dark:text-green-400 dark:hover:text-green-300"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleReimbursementAction(claim.id, 'Rejected')}
-                                className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded-md dark:bg-red-900/20 dark:text-red-400 dark:hover:text-red-300"
-                              >
-                                Reject
-                              </button>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                          {claim.status === 'Submitted' && (
+                            <div className="flex gap-2">
                               <button
                                 onClick={() => setSelectedClaim(claim)}
                                 className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-md dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:text-indigo-300"
