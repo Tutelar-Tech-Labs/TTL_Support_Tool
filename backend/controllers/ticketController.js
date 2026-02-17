@@ -195,8 +195,15 @@ export const createTicket = async (req, res) => {
 
     // Send WhatsApp Acknowledgement
     if (contact_phone) {
-      await sendTicketAcknowledgement(customer_name, contact_name, ticketNumber, contact_phone);
+      await sendTicketAcknowledgement(contact_name,        // {{1}} Hello {{1}}
+        ticketNumber,         // {{2}} Ticket ID
+        issue_description,    // {{3}} Issue
+        assigned_engineer,    // {{4}} Assigned Engineer
+        engineer_phone,       // {{5}} Engineer Contact
+        contact_phone         // Recipient number
+      );
     }
+
 
     res.status(201).json({
       status: "success",
