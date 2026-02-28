@@ -96,13 +96,13 @@ export default function AdminDashboard() {
     };
     fetchData();
     const interval = setInterval(() => {
-        // Poll for pending reimbursements only if user is admin
-        if (localStorage.getItem("userEmail")?.toLowerCase() === 'rambalaji@tutelartechlabs.com') {
-             fetch(`${import.meta.env.VITE_API_URL}/api/reimbursement/pending?_t=${Date.now()}`)
-                .then(res => res.json())
-                .then(data => setReimbursements(data))
-                .catch(e => console.error("Polling error:", e));
-        }
+      // Poll for pending reimbursements only if user is admin
+      if (localStorage.getItem("userEmail")?.toLowerCase() === 'rambalaji@tutelartechlabs.com') {
+        fetch(`${import.meta.env.VITE_API_URL}/api/reimbursement/pending?_t=${Date.now()}`)
+          .then(res => res.json())
+          .then(data => setReimbursements(data))
+          .catch(e => console.error("Polling error:", e));
+      }
     }, 10000); // 10 seconds polling
 
     return () => clearInterval(interval);
@@ -698,6 +698,7 @@ export default function AdminDashboard() {
                 <thead className="bg-gray-50 dark:bg-servicenow-dark">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Claim ID</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Report Name</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Employee</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Amount</th>
@@ -717,6 +718,9 @@ export default function AdminDashboard() {
                       <tr key={claim.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
                           {new Date(claim.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-indigo-600 dark:text-indigo-400">
+                          {claim.claim_number || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">{claim.report_name}</div>

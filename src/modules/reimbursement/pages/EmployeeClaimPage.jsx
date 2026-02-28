@@ -574,6 +574,7 @@ const EmployeeClaimPage = () => {
                         <thead className="bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 text-sm uppercase">
                             <tr>
                                 <th className="p-4">Date</th>
+                                <th className="p-4">Claim ID</th>
                                 <th className="p-4">Report Name</th>
                                 <th className="p-4">Total Amount</th>
                                 <th className="p-4">Currency</th>
@@ -590,6 +591,7 @@ const EmployeeClaimPage = () => {
                                 claims.map(claim => (
                                     <tr key={claim.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
                                         <td className="p-4 text-gray-700 dark:text-gray-300">{new Date(claim.created_at).toLocaleDateString()}</td>
+                                        <td className="p-4 font-mono text-xs text-indigo-600 dark:text-indigo-400">{claim.claim_number || '-'}</td>
                                         <td className="p-4 font-medium text-gray-900 dark:text-white">{claim.report_name}</td>
                                         <td className="p-4 text-gray-900 dark:text-white">₹{claim.total_amount}</td>
                                         <td className="p-4 text-gray-600 dark:text-gray-400">{claim.currency}</td>
@@ -635,7 +637,10 @@ const EmployeeClaimPage = () => {
                         <div className="bg-white dark:bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700 shadow-2xl">
                             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900 rounded-t-xl">
                                 <div>
-                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Claim Details</h2>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                        Claim Details
+                                        {selectedClaim.claim_number && <span className="text-sm font-mono text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded italic">({selectedClaim.claim_number})</span>}
+                                    </h2>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">{selectedClaim.report_name}</p>
                                 </div>
                                 <button

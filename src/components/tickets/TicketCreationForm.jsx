@@ -51,9 +51,9 @@ export default function TicketCreationForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const data = new FormData();
       data.append('severity', formData.severity);
@@ -66,11 +66,11 @@ export default function TicketCreationForm() {
       data.append('contact_name', formData.contactName);
       data.append('contact_phone', formData.phone);
       data.append('contact_email', formData.email);
-      
+
       // Ensure assigned_engineer is set to the current user (creator)
       const currentUserName = localStorage.getItem("userName");
       data.append('assigned_engineer', currentUserName || formData.assignedEngineer);
-      
+
       data.append('engineer_phone', formData.engineerPhone);
       data.append('engineer_email', formData.engineerEmail);
       data.append('issue_subject', formData.issueSubject);
@@ -80,25 +80,25 @@ export default function TicketCreationForm() {
       data.append('engineer_remarks', formData.engineerRemarks);
       data.append('problem_resolution', formData.problemResolution);
       data.append('reference_url', formData.referenceUrl);
-      
+
       // Fix: If openDate matches today's date (YYYY-MM-DD), send the current full timestamp in LOCAL time
       // to avoid UTC conversion issues (e.g. appearing as yesterday).
       // We want to map it exactly to the system date/time as the user sees it.
       const now = new Date();
       const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-      
+
       if (formData.openDate === todayStr) {
-          // Send current UTC timestamp. 
-          // The backend and frontend should handle UTC conversion correctly.
-          data.append('open_date', new Date().toISOString());
+        // Send current UTC timestamp. 
+        // The backend and frontend should handle UTC conversion correctly.
+        data.append('open_date', new Date().toISOString());
       } else {
-          // If user selected a past date, send it as is (YYYY-MM-DD).
-          // MySQL DATETIME will interpret this as YYYY-MM-DD 00:00:00 (Midnight Local)
-          data.append('open_date', formData.openDate);
+        // If user selected a past date, send it as is (YYYY-MM-DD).
+        // MySQL DATETIME will interpret this as YYYY-MM-DD 00:00:00 (Midnight Local)
+        data.append('open_date', formData.openDate);
       }
-      
+
       data.append('close_date', formData.closeDate);
-      
+
       const userId = localStorage.getItem("userId");
       if (userId) {
         data.append('created_by', userId);
@@ -114,7 +114,7 @@ export default function TicketCreationForm() {
       });
 
       const result = await response.json();
-      
+
       if (result.status === 'success') {
         // Send Email Notification
         // Only attempt to send email if EmailJS is configured
@@ -254,6 +254,7 @@ export default function TicketCreationForm() {
                     <option value="SASE">SASE</option>
                     <option value="CASB">CASB</option>
                     <option value="PRISMA ACCESS">PRISMA ACCESS</option>
+                    <option value="PRISMA BROWSER">PRISMA BROWSER</option>
 
                   </optgroup>
                   <optgroup label="SOC">
@@ -603,7 +604,7 @@ export default function TicketCreationForm() {
                       {isSubmitting ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-indigo-500 border-t-transparent"></div>
                       ) : (
-                        <Upload className="w-4 h-4" /> 
+                        <Upload className="w-4 h-4" />
                       )}
                       {isSubmitting ? 'Uploading...' : 'Choose File'}
                       <input
@@ -619,7 +620,7 @@ export default function TicketCreationForm() {
                         disabled={isSubmitting}
                       />
                     </label>
-                    
+
                     {formData.attachment && !isSubmitting ? (
                       <span className="text-xs text-green-600 flex items-center gap-1">
                         <CheckCircle className="w-4 h-4" /> {formData.attachment.name}

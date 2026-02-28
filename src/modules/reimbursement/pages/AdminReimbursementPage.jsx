@@ -316,6 +316,7 @@ const AdminReimbursementPage = () => {
                             <thead className="bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 text-sm uppercase">
                                 <tr>
                                     <th className="p-4">Date</th>
+                                    <th className="p-4">Claim ID</th>
                                     <th className="p-4">Employee</th>
                                     <th className="p-4">Report Name</th>
                                     <th className="p-4">Amount</th>
@@ -331,6 +332,7 @@ const AdminReimbursementPage = () => {
                                     claims.map(claim => (
                                         <tr key={claim.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
                                             <td className="p-4 text-gray-700 dark:text-gray-300">{new Date(claim.created_at).toLocaleDateString()}</td>
+                                            <td className="p-4 font-mono text-xs text-indigo-600 dark:text-indigo-400">{claim.claim_number || '-'}</td>
                                             <td className="p-4">
                                                 <div className="font-medium text-gray-900 dark:text-white">{claim.employee_name}</div>
                                                 <div className="text-xs text-gray-500 dark:text-gray-500">{claim.employee_email}</div>
@@ -412,6 +414,7 @@ const AdminReimbursementPage = () => {
                                                     />
                                                 </th>
                                                 <th className="p-4 cursor-pointer hover:text-gray-700">Date <ChevronDown className="w-3 h-3 inline ml-1" /></th>
+                                                <th className="p-4">Claim ID</th>
                                                 <th className="p-4 font-bold text-gray-800 dark:text-gray-200">Employee</th>
                                                 <th className="p-4 text-center">Details</th>
                                                 <th className="p-4 cursor-pointer hover:text-gray-700">Expense Type <ChevronDown className="w-3 h-3 inline ml-1" /></th>
@@ -438,6 +441,7 @@ const AdminReimbursementPage = () => {
                                                         <td className="p-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">
                                                             {new Date(item.transaction_date).toLocaleDateString()}
                                                         </td>
+                                                        <td className="p-4 font-mono text-xs text-indigo-600 dark:text-indigo-400">{item.claim_number || '-'}</td>
                                                         <td className="p-4 text-indigo-600 dark:text-indigo-400 font-medium">
                                                             {item.employee_name}
                                                         </td>
@@ -610,7 +614,10 @@ const AdminReimbursementPage = () => {
                         {/* Header */}
                         <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Claim Details</h2>
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                    Claim Details
+                                    {selectedClaim.claim_number && <span className="text-sm font-mono text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded italic">({selectedClaim.claim_number})</span>}
+                                </h2>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">{selectedClaim.report_name} - {selectedClaim.employee_name}</p>
                             </div>
                             <button
