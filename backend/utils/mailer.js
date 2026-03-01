@@ -22,7 +22,7 @@ const transporter = nodemailer.createTransport({
 export const sendEmail = async ({ to, subject, html }) => {
     try {
         const mailOptions = {
-            from: `"Ram Balaji" <${process.env.EMAIL_USER}>`,
+            from: `"Expense-Approval" <${process.env.EMAIL_USER}>`,
             to,
             subject,
             html
@@ -59,7 +59,7 @@ export const sendClaimStatusEmail = async (employee, claim, status, rejectionRea
             ${!isApproved && rejectionReason ? `<p><strong>Rejection Reason:</strong> ${rejectionReason}</p>` : ''}
 
             <p>Regards,<br>
-            Ram Balaji</p>
+            TTL Support</p>
         </div>
     `;
 
