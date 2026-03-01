@@ -21,11 +21,25 @@ import AdminReimbursementPage from "./modules/reimbursement/pages/AdminReimburse
 import AdminActivityPage from "./modules/attendance/pages/AdminActivityPage";
 
 
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return <Navigate to="/" />;
+  }
+  return children;
+};
+
 const SalesRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
   const role = localStorage.getItem("userRole");
   const email = localStorage.getItem("userEmail");
+
+  if (!token) {
+    return <Navigate to="/" />;
+  }
+
   // Check: role is sales OR specific email (allowing admin with this email to access)
-  if (role === 'sales' || email?.toLowerCase() === 'rambalaji@tutelartechlabs.com') {
+  if (role === 'sales' || email?.toLowerCase() === 'rambalaji@tutelartechlabs.com' || role === 'admin') {
     return children;
   }
   // Redirect others to home/login
@@ -33,7 +47,13 @@ const SalesRoute = ({ children }) => {
 };
 
 const AdminRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
   const role = localStorage.getItem("userRole");
+
+  if (!token) {
+    return <Navigate to="/" />;
+  }
+
   if (role === 'admin') {
     return children;
   }
@@ -57,15 +77,33 @@ export default function App() {
           </AdminRoute>
         } />
 
-        <Route path="/engineer/dashboard" element={<EngineerDashboard />} />
-        <Route path="/engineer/dashboard/profile" element={
-          <EngineerLayout>
-            <Profile />
-          </EngineerLayout>
+        <Route path="/engineer/dashboard" element={
+          <ProtectedRoute>
+            <EngineerDashboard />
+          </ProtectedRoute>
         } />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/tickets/create" element={<TicketCreationForm />} />
-        <Route path="/tickets/:id" element={<TicketDetailsView />} />
+        <Route path="/engineer/dashboard/profile" element={
+          <ProtectedRoute>
+            <EngineerLayout>
+              <Profile />
+            </EngineerLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/dashboard" element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } />
+        <Route path="/tickets/create" element={
+          <ProtectedRoute>
+            <TicketCreationForm />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/:id" element={
+          <ProtectedRoute>
+            <TicketDetailsView />
+          </ProtectedRoute>
+        } />
 
         <Route path="/sales/dashboard" element={
           <SalesRoute>
@@ -86,37 +124,49 @@ export default function App() {
         {/* Attendance Routes */}
         <Route path="/attendance" element={<Navigate to="/attendance/dashboard" />} />
         <Route path="/attendance/dashboard" element={
-          <EngineerLayout>
-            <AttendanceEmployeeDashboard />
-          </EngineerLayout>
+          <ProtectedRoute>
+            <EngineerLayout>
+              <AttendanceEmployeeDashboard />
+            </EngineerLayout>
+          </ProtectedRoute>
         } />
         <Route path="/attendance/admin" element={
-          <EngineerLayout>
-            <AttendanceAdminDashboard />
-          </EngineerLayout>
+          <AdminRoute>
+            <EngineerLayout>
+              <AttendanceAdminDashboard />
+            </EngineerLayout>
+          </AdminRoute>
         } />
         {/* Profile removed from attendance routes */}
         <Route path="/attendance/admin/employees/:id" element={
-          <EngineerLayout>
-            <AdminEmployeeDetail />
-          </EngineerLayout>
+          <AdminRoute>
+            <EngineerLayout>
+              <AdminEmployeeDetail />
+            </EngineerLayout>
+          </AdminRoute>
         } />
 
         {/* Reimbursement Routes */}
         <Route path="/employee/reimbursement" element={
-          <EngineerLayout>
-            <EmployeeClaimPage />
-          </EngineerLayout>
+          <ProtectedRoute>
+            <EngineerLayout>
+              <EmployeeClaimPage />
+            </EngineerLayout>
+          </ProtectedRoute>
         } />
         <Route path="/admin/reimbursement-approval" element={
-          <EngineerLayout>
-            <AdminReimbursementPage />
-          </EngineerLayout>
+          <AdminRoute>
+            <EngineerLayout>
+              <AdminReimbursementPage />
+            </EngineerLayout>
+          </AdminRoute>
         } />
         <Route path="/admin/activity" element={
-          <EngineerLayout>
-            <AdminActivityPage />
-          </EngineerLayout>
+          <AdminRoute>
+            <EngineerLayout>
+              <AdminActivityPage />
+            </EngineerLayout>
+          </AdminRoute>
         } />
       </Routes>
       <Toaster position="top-right" />

@@ -14,8 +14,12 @@ import {
     exportItemsBulk
 } from "../controllers/reimbursementController.js";
 import { uploadReceipt } from "../middlewares/uploadMiddleware.js";
+import { verifyToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
+
+// Apply authentication to all reimbursement routes
+router.use(verifyToken);
 
 // Allow uploading multiple files. 
 // Ideally we expect 'receipt_0', 'receipt_1' etc. so strictly 'array' might not work if field names differ.
