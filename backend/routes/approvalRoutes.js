@@ -7,12 +7,8 @@ import {
   getMyApprovals,
   grantAccess
 } from "../controllers/approvalController.js";
-import { verifyToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
-
-// Apply authentication to all approval routes
-router.use(verifyToken);
 
 router.post("/request", requestAccess);
 router.post("/grant", grantAccess);

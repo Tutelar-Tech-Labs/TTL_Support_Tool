@@ -9,12 +9,8 @@ import {
   updateTicket,
   transferTicket
 } from "../controllers/ticketController.js";
-import { verifyToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
-
-// Apply authentication to all ticket routes
-router.use(verifyToken);
 
 // Configure multer storage
 const storage = multer.diskStorage({

@@ -1,4 +1,6 @@
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from 'react-hot-toast';
 
 import LoginPage from "./components/auth/LoginPage";
 import SignupPage from "./components/auth/SignupPage";
@@ -10,7 +12,6 @@ import SalesDashboard from "./components/sales/SalesDashboard";
 import SalesOpportunityView from "./components/sales/SalesOpportunityView";
 import EngineerLayout from "./components/common/EngineerLayout";
 
-// Attendance Module Imports testing
 // Attendance Module Imports
 import AttendanceEmployeeDashboard from "./modules/attendance/pages/EmployeeDashboard";
 import AttendanceAdminDashboard from "./modules/attendance/pages/AdminDashboard";
@@ -19,48 +20,7 @@ import AdminEmployeeDetail from "./modules/attendance/pages/AdminEmployeeDetail"
 import EmployeeClaimPage from "./modules/reimbursement/pages/EmployeeClaimPage";
 import AdminReimbursementPage from "./modules/reimbursement/pages/AdminReimbursementPage";
 import AdminActivityPage from "./modules/attendance/pages/AdminActivityPage";
-
-
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    return <Navigate to="/" />;
-  }
-  return children;
-};
-
-const SalesRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("userRole");
-  const email = localStorage.getItem("userEmail");
-
-  if (!token) {
-    return <Navigate to="/" />;
-  }
-
-  // Check: role is sales OR specific email (allowing admin with this email to access)
-  if (role === 'sales' || email?.toLowerCase() === 'rambalaji@tutelartechlabs.com' || role === 'admin') {
-    return children;
-  }
-  // Redirect others to home/login
-  return <Navigate to="/" />;
-};
-
-const AdminRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("userRole");
-
-  if (!token) {
-    return <Navigate to="/" />;
-  }
-
-  if (role === 'admin') {
-    return children;
-  }
-  return <Navigate to="/" />;
-};
-
-import { Toaster } from 'react-hot-toast';
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 export default function App() {
   return (
@@ -70,11 +30,11 @@ export default function App() {
 
         {/* Admin Registration Route */}
         <Route path="/admin/register" element={
-          <AdminRoute>
+          <ProtectedRoute roles={['admin']}>
             <EngineerLayout>
               <SignupPage isInternal={true} />
             </EngineerLayout>
-          </AdminRoute>
+          </ProtectedRoute>
         } />
 
         <Route path="/engineer/dashboard" element={
@@ -90,9 +50,9 @@ export default function App() {
           </ProtectedRoute>
         } />
         <Route path="/admin/dashboard" element={
-          <AdminRoute>
+          <ProtectedRoute roles={['admin']}>
             <AdminDashboard />
-          </AdminRoute>
+          </ProtectedRoute>
         } />
         <Route path="/tickets/create" element={
           <ProtectedRoute>
@@ -106,19 +66,19 @@ export default function App() {
         } />
 
         <Route path="/sales/dashboard" element={
-          <SalesRoute>
+          <ProtectedRoute roles={['sales']}>
             <SalesDashboard />
-          </SalesRoute>
+          </ProtectedRoute>
         } />
         <Route path="/sales/create" element={
-          <SalesRoute>
+          <ProtectedRoute roles={['sales']}>
             <SalesOpportunityView />
-          </SalesRoute>
+          </ProtectedRoute>
         } />
         <Route path="/sales/:id" element={
-          <SalesRoute>
+          <ProtectedRoute roles={['sales']}>
             <SalesOpportunityView />
-          </SalesRoute>
+          </ProtectedRoute>
         } />
 
         {/* Attendance Routes */}
@@ -131,19 +91,19 @@ export default function App() {
           </ProtectedRoute>
         } />
         <Route path="/attendance/admin" element={
-          <AdminRoute>
+          <ProtectedRoute roles={['admin']}>
             <EngineerLayout>
               <AttendanceAdminDashboard />
             </EngineerLayout>
-          </AdminRoute>
+          </ProtectedRoute>
         } />
         {/* Profile removed from attendance routes */}
         <Route path="/attendance/admin/employees/:id" element={
-          <AdminRoute>
+          <ProtectedRoute roles={['admin']}>
             <EngineerLayout>
               <AdminEmployeeDetail />
             </EngineerLayout>
-          </AdminRoute>
+          </ProtectedRoute>
         } />
 
         {/* Reimbursement Routes */}
@@ -155,18 +115,18 @@ export default function App() {
           </ProtectedRoute>
         } />
         <Route path="/admin/reimbursement-approval" element={
-          <AdminRoute>
+          <ProtectedRoute roles={['admin']}>
             <EngineerLayout>
               <AdminReimbursementPage />
             </EngineerLayout>
-          </AdminRoute>
+          </ProtectedRoute>
         } />
         <Route path="/admin/activity" element={
-          <AdminRoute>
+          <ProtectedRoute roles={['admin']}>
             <EngineerLayout>
               <AdminActivityPage />
             </EngineerLayout>
-          </AdminRoute>
+          </ProtectedRoute>
         } />
       </Routes>
       <Toaster position="top-right" />

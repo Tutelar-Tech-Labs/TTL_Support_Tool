@@ -8,12 +8,8 @@ import {
   updateOpportunity, 
   uploadSalesDocument 
 } from "../controllers/salesController.js";
-import { verifyToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
-
-// Apply authentication to all sales routes
-router.use(verifyToken);
 const upload = multer({ dest: "uploads/temp/" });
 
 router.post("/", createOpportunity);

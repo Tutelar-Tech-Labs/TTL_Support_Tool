@@ -5,12 +5,8 @@ import {
   updateSalesApproval,
   getApprovalStatus
 } from "../controllers/salesApprovalController.js";
-import { verifyToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
-
-// Apply authentication to all sales approval routes
-router.use(verifyToken);
 
 router.post("/request", requestSalesApproval);
 router.get("/", getSalesApprovals);
