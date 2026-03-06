@@ -441,10 +441,10 @@ export default function AdminDashboard() {
               <h2 className="text-xl font-bold text-gray-900 mb-4">All Tickets</h2>
 
               {/* Filters and Export Section */}
-              <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-4">
+              <div className="bg-white dark:bg-servicenow-light p-4 rounded-xl border border-gray-200 dark:border-servicenow-dark shadow-sm mb-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex flex-wrap gap-4 items-center">
-                    <div className="flex items-center gap-2 text-gray-600">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-slate-300">
                       <Filter className="w-4 h-4" />
                       <span className="text-sm font-medium">Filter by:</span>
                     </div>
@@ -453,7 +453,7 @@ export default function AdminDashboard() {
                     <select
                       value={filterCustomer}
                       onChange={(e) => setFilterCustomer(e.target.value)}
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="text-sm border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-servicenow-dark text-gray-900 dark:text-white"
                     >
                       <option value="All">All Customers</option>
                       {uniqueCustomers.filter(c => c !== 'All').map(c => (
@@ -465,7 +465,7 @@ export default function AdminDashboard() {
                     <select
                       value={filterProduct}
                       onChange={(e) => setFilterProduct(e.target.value)}
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="text-sm border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-servicenow-dark text-gray-900 dark:text-white"
                     >
                       <option value="All">All Products</option>
                       {uniqueProducts.filter(p => p !== 'All').map(p => (
@@ -477,7 +477,7 @@ export default function AdminDashboard() {
                     <select
                       value={filterEngineer}
                       onChange={(e) => setFilterEngineer(e.target.value)}
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="text-sm border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-servicenow-dark text-gray-900 dark:text-white"
                     >
                       <option value="All">All Engineers</option>
                       {uniqueEngineers.filter(e => e !== 'All').map(e => (
@@ -489,7 +489,7 @@ export default function AdminDashboard() {
                     <select
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="text-sm border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-servicenow-dark text-gray-900 dark:text-white"
                     >
                       <option value="All">All Statuses</option>
                       {uniqueStatuses.filter(s => s !== 'All').map(s => (
@@ -499,19 +499,19 @@ export default function AdminDashboard() {
 
                     {/* Date Range Filter */}
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">From:</span>
+                      <span className="text-sm text-gray-600 dark:text-slate-300">From:</span>
                       <input
                         type="date"
                         value={filterStartDate}
                         onChange={(e) => setFilterStartDate(e.target.value)}
-                        className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="text-sm border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-servicenow-dark text-gray-900 dark:text-white"
                       />
-                      <span className="text-sm text-gray-600">To:</span>
+                      <span className="text-sm text-gray-600 dark:text-slate-300">To:</span>
                       <input
                         type="date"
                         value={filterEndDate}
                         onChange={(e) => setFilterEndDate(e.target.value)}
-                        className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="text-sm border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-servicenow-dark text-gray-900 dark:text-white"
                       />
                     </div>
                   </div>
