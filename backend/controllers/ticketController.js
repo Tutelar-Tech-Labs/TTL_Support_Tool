@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { uploadFileToDrive } from "../services/googleDriveService.js";
 import { sendTicketAcknowledgement } from "../services/whatsappService.js";
+import { sendEmail } from "../utils/mailer.js";
 
 // Mapping of customer names (lowercase) to their specific Google Drive Folder IDs
 // This ensures attachments for these customers go to their dedicated folders
@@ -44,11 +45,23 @@ export const createTicket = async (req, res) => {
       open_date, close_date, created_by
     } = req.body;
 
+    // Validate contact phone - must be exactly 10 digits to avoid server errors
+    const phoneDigits = String(contact_phone || '').replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      return res.status(400).json({ message: "Invalid contact phone. Enter a 10-digit mobile number." });
+    }
+
+    const [creator] = await db.query(
+      "SELECT name FROM users WHERE id = ?",
+      [created_by]
+    );
+    const createdByName = creator.length ? creator[0].name : "System";
+
     const initialTimeline = [
       {
         date: (open_date ? new Date(open_date) : new Date()).toISOString(),
         event: "Ticket created",
-        user: "System",
+        user: createdByName,
         type: "create"
       }
     ];
@@ -97,6 +110,16 @@ export const createTicket = async (req, res) => {
     // Ensure created_by is valid (handle potential empty string)
     const creatorId = created_by && created_by !== "undefined" && created_by !== "null" ? created_by : null;
 
+    let finalEmail = engineer_email || "";
+    let finalPhone = engineer_phone || "";
+    if (assigned_engineer) {
+      const [u] = await db.query("SELECT email, phone FROM users WHERE name = ? LIMIT 1", [assigned_engineer]);
+      if (u.length > 0) {
+        finalEmail = u[0].email || "";
+        finalPhone = u[0].phone || "";
+      }
+    }
+
     const [result] = await db.query(
       `INSERT INTO tickets (
         ticket_number,
@@ -111,7 +134,7 @@ export const createTicket = async (req, res) => {
         ticketNumber,
         severity, ticket_type, technology_domain, customer_name, customer_serial_no,
         tsg_id, csp_id, contact_name, contact_phone, contact_email,
-        assigned_engineer, engineer_phone, engineer_email,
+        assigned_engineer, finalPhone, finalEmail,
         issue_subject, issue_description, oem_tac_involved, tac_case_number,
         engineer_remarks, problem_resolution, reference_url,
         toMySQLDate(formattedOpenDate), close_date || null, creatorId, JSON.stringify(initialTimeline)
@@ -224,7 +247,7 @@ export const getTickets = async (req, res) => {
         t.id, t.ticket_number, t.severity, t.status, t.ticket_type, t.customer_name as customer, 
         t.customer_serial_no, t.technology_domain as product, t.open_date, t.close_date, t.assigned_engineer,
         t.issue_subject, t.issue_description, t.oem_tac_involved, t.tac_case_number,
-        t.engineer_remarks, t.problem_resolution,
+        t.engineer_remarks, t.problem_resolution, t.timeline,
         u.name as created_by_name
       FROM tickets t
       LEFT JOIN users u ON t.created_by = u.id
@@ -241,7 +264,24 @@ export const getTickets = async (req, res) => {
 export const getTicketById = async (req, res) => {
   try {
     const { id } = req.params;
-    const [tickets] = await db.query("SELECT * FROM tickets WHERE id = ?", [id]);
+    const [tickets] = await db.query(`
+      SELECT t.*, u.name as created_by_name,
+        eng.phone as assigned_engineer_phone,
+        eng.email as assigned_engineer_email
+      FROM tickets t
+      LEFT JOIN users u ON t.created_by = u.id
+      LEFT JOIN users eng ON eng.name = t.assigned_engineer
+      WHERE t.id = ?
+    `, [id]);
+    
+    if (tickets.length > 0) {
+      console.log(`[DEBUG] Ticket ${id} result:`, {
+        assigned_engineer: tickets[0].assigned_engineer,
+        engineer_email: tickets[0].engineer_email,
+        assigned_engineer_email: tickets[0].assigned_engineer_email,
+        assigned_engineer_phone: tickets[0].assigned_engineer_phone
+      });
+    }
 
     if (tickets.length === 0) {
       return res.status(404).json({ message: "Ticket not found" });
@@ -252,8 +292,25 @@ export const getTicketById = async (req, res) => {
       [id]
     );
 
+    const ticket = tickets[0];
+
+    // Force override stale values using JOIN data
+    if (ticket.assigned_engineer_phone) {
+      ticket.engineer_phone = ticket.assigned_engineer_phone;
+    }
+
+    if (ticket.assigned_engineer_email) {
+      ticket.engineer_email = ticket.assigned_engineer_email;
+    }
+
+    console.log("FINAL API RESPONSE:", {
+      assigned: ticket.assigned_engineer,
+      phone: ticket.engineer_phone,
+      email: ticket.engineer_email
+    });
+
     res.json({
-      ticket: tickets[0],
+      ticket,
       attachments
     });
   } catch (error) {
@@ -268,14 +325,16 @@ export const updateTicket = async (req, res) => {
     const {
       status, severity, issue_subject, issue_description,
       engineer_remarks, problem_resolution, timeline, rough_notes,
+      oem_tac_involved, tac_case_number,
       close_date
     } = req.body;
 
     let query = `UPDATE tickets SET 
         status = ?, severity = ?, issue_subject = ?, issue_description = ?,
-        engineer_remarks = ?, problem_resolution = ?, rough_notes = ?`;
+        engineer_remarks = ?, problem_resolution = ?, rough_notes = ?,
+        oem_tac_involved = ?, tac_case_number = ?`;
 
-    const params = [status, severity, issue_subject, issue_description, engineer_remarks, problem_resolution, rough_notes];
+    const params = [status, severity, issue_subject, issue_description, engineer_remarks, problem_resolution, rough_notes, oem_tac_involved, tac_case_number];
 
     if (timeline) {
       query += `, timeline = ?`;
@@ -298,11 +357,21 @@ export const updateTicket = async (req, res) => {
        query += `, close_date = NULL`;
     }
 
+    // Safely map identifier to primary key integer to resolve TTL string vs ID mismatch
+    const [matching] = await db.query("SELECT id FROM tickets WHERE id = ? OR ticket_number = ?", [id, id]);
+    if (matching.length === 0) {
+      return res.status(404).json({ message: "Update rejected: Ticket identifier not found in DB." });
+    }
+    const safeDbId = matching[0].id;
+    
     query += ` WHERE id = ?`;
-    params.push(id);
+    params.push(safeDbId);
 
     try {
-      await db.query(query, params);
+      const [updateResult] = await db.query(query, params);
+      if (updateResult.affectedRows === 0) {
+        console.warn("Update processed but 0 matching rows changed for identifier:", safeDbId);
+      }
     } catch (err) {
       const msg = String(err.message || '');
       if (msg.includes('incorrect enum value') || msg.includes('Invalid ENUM value')) {
@@ -311,7 +380,10 @@ export const updateTicket = async (req, res) => {
           MODIFY COLUMN status ENUM('Open', 'In Progress', 'Pending from Customer', 'Closed') 
           DEFAULT 'Open'
         `);
-        await db.query(query, params);
+        const [retryResult] = await db.query(query, params);
+        if (retryResult.affectedRows === 0) {
+          console.warn("Enum update processed but 0 matching rows changed for identifier:", safeDbId);
+        }
       } else {
         throw err;
       }
@@ -383,19 +455,155 @@ export const updateTicket = async (req, res) => {
   }
 };
 
+export const sendFeedbackEmail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { to, subject, message } = req.body;
+    const [tickets] = await db.query("SELECT ticket_number, contact_email, customer_name FROM tickets WHERE id = ?", [id]);
+    if (tickets.length === 0) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+    const ticket = tickets[0];
+    const recipient = to && to.trim() ? to.trim() : ticket.contact_email;
+    const emailSubject = subject && subject.trim() ? subject.trim() : `Feedback for Ticket ${ticket.ticket_number || id}`;
+    const html = `<div><p>${message || "Please find the feedback attachment for your reference."}</p><p>Ticket: ${ticket.ticket_number || id}</p></div>`;
+
+    let attachmentPath = null;
+    let attachmentName = null;
+    if (req.file) {
+      const ext = path.extname(req.file.originalname);
+      const cleanName = `Feedback_${ticket.ticket_number || id}${ext}`;
+      const targetDir = path.join('uploads', 'tickets', String(id), 'feedback');
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      const dest = path.join(targetDir, cleanName);
+      fs.copyFileSync(req.file.path, dest);
+      try { fs.unlinkSync(req.file.path); } catch (_) {}
+      attachmentPath = dest;
+      attachmentName = cleanName;
+
+      await db.query(
+        `INSERT INTO ticket_attachments (ticket_id, file_name, file_path, file_type, file_size) VALUES (?, ?, ?, ?, ?)`,
+        [id, cleanName, dest, req.file.mimetype, req.file.size]
+      );
+    }
+
+    const attachments = attachmentPath ? [{ filename: attachmentName, path: attachmentPath, contentType: req.file.mimetype }] : [];
+    await sendEmail({ to: recipient, subject: emailSubject, html, attachments });
+
+    res.json({ message: "Feedback email sent" });
+  } catch (error) {
+    console.error("Feedback email error:", error);
+    res.status(500).json({ message: "Server error sending feedback email" });
+  }
+};
+
+// Delete an attachment record and remove local file if present
+export const deleteAttachment = async (req, res) => {
+  try {
+    const { ticketId, attachmentId } = req.params;
+    // Fetch attachment info
+    const [rows] = await db.query(
+      "SELECT file_path FROM ticket_attachments WHERE id = ? AND ticket_id = ?",
+      [attachmentId, ticketId]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Attachment not found" });
+    }
+    const filePath = rows[0].file_path || '';
+
+    // Delete DB record
+    await db.query("DELETE FROM ticket_attachments WHERE id = ? AND ticket_id = ?", [attachmentId, ticketId]);
+
+    // If local file, try to delete (ignore errors)
+    try {
+      if (filePath && !/^https?:\/\//i.test(filePath) && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (e) {
+      console.warn("Failed to delete local attachment file:", e);
+    }
+
+    res.json({ message: "Attachment deleted" });
+  } catch (error) {
+    console.error("Delete attachment error:", error);
+    res.status(500).json({ message: "Server error deleting attachment" });
+  }
+};
+
 export const transferTicket = async (req, res) => {
   try {
     const { id } = req.params;
-    const { assigned_engineer } = req.body;
+    const { assigned_engineer, userName } = req.body;
 
-    await db.query(
-      "UPDATE tickets SET assigned_engineer = ? WHERE id = ?",
-      [assigned_engineer, id]
+    console.log("Assign request:", assigned_engineer);
+
+    // Get correct engineer details from users table
+    const [users] = await db.query(
+      "SELECT email, phone FROM users WHERE name = ? LIMIT 1",
+      [assigned_engineer]
     );
 
+    if (!users.length) {
+      return res.status(400).json({ message: "Engineer not found" });
+    }
+
+    const newEmail = users[0].email || "";
+    const newPhone = users[0].phone || "";
+
+    // Get existing timeline
+    const [tickets] = await db.query(
+      "SELECT id, timeline FROM tickets WHERE id = ? OR ticket_number = ?",
+      [id, id]
+    );
+
+    if (!tickets.length) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    const actualId = tickets[0].id;
+    let timeline = [];
+    if (tickets[0].timeline) {
+      timeline = typeof tickets[0].timeline === 'string'
+        ? JSON.parse(tickets[0].timeline)
+        : tickets[0].timeline;
+    }
+
+    // Add assignment event
+    console.log("Timeline before push:", timeline);
+    timeline.push({
+      date: new Date().toISOString(),
+      event: `Assigned to ${assigned_engineer}`,
+      user: userName || "Admin",
+      type: "assign"
+    });
+    console.log("Timeline after push:", timeline);
+
+    const timelineStr = JSON.stringify(timeline);
+    console.log("Saving timeline string:", timelineStr);
+
+    // 🔥 CRITICAL: update DB correctly
+    const [updateResult] = await db.query(
+      `UPDATE tickets 
+       SET assigned_engineer = ?, 
+           engineer_email = ?, 
+           engineer_phone = ?, 
+           timeline = ? 
+       WHERE id = ?`,
+      [assigned_engineer, newEmail, newPhone, timelineStr, actualId]
+    );
+
+    if (updateResult.affectedRows === 0) {
+       return res.status(400).json({ message: "Assignment update rejected: DB returned 0 rows affected." });
+    }
+
+    console.log("DB updated successfully");
+
     res.json({ message: "Ticket transferred successfully" });
+
   } catch (error) {
-    console.error("Transfer ticket error:", error);
-    res.status(500).json({ message: "Server error transferring ticket" });
+    console.error("Transfer error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
