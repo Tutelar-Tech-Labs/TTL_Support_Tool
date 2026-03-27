@@ -53,7 +53,7 @@ const ClaimDetailsModal = ({ claim, onClose, onAction }) => {
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             Claim Details
-                            {claim.claim_number && <span className="text-sm font-mono text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded italic">({claim.claim_number})</span>}
+                            {claim.claim_number && <span className="text-sm font-mono text-primary-500 bg-primary-50 dark:bg-primary-500/10 px-2 py-0.5 rounded italic">({claim.claim_number})</span>}
                         </h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400">{claim.report_name} - {claim.employee_name}</p>
                     </div>
@@ -75,7 +75,7 @@ const ClaimDetailsModal = ({ claim, onClose, onAction }) => {
                                 <div key={item.id} className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-sm transition">
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <h3 className="font-semibold text-indigo-600 dark:text-indigo-400 text-lg">{item.expense_type}</h3>
+                                            <h3 className="font-semibold text-primary-600 dark:text-primary-400 text-lg">{item.expense_type}</h3>
                                             <div className="text-sm text-gray-500 flex items-center gap-2 mt-1">
                                                 <span>{new Date(item.transaction_date).toLocaleDateString()}</span>
                                                 <span>•</span>
@@ -98,7 +98,7 @@ const ClaimDetailsModal = ({ claim, onClose, onAction }) => {
                                                 href={`${API_URL}/${item.receipt_path}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition text-sm font-medium"
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/40 transition text-sm font-medium"
                                             >
                                                 <FileText className="w-4 h-4" /> View Receipt
                                             </a>

@@ -196,7 +196,7 @@ export default function TicketCreationForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white dark:bg-servicenow-light rounded-xl border dark:border-servicenow-dark p-6">
             <h2 className="flex items-center gap-2 font-semibold mb-4 text-gray-900 dark:text-white">
-              <AlertCircle className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <AlertCircle className="w-5 h-5 text-primary-600 dark:text-primary-400" />
               Ticket Details
             </h2>
 
@@ -598,7 +598,7 @@ export default function TicketCreationForm() {
                   <div className="flex items-center gap-2">
                     <label className={`cursor-pointer bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-50 flex items-center gap-2 ${isSubmitting ? 'opacity-50 pointer-events-none' : ''}`}>
                       {isSubmitting ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-indigo-500 border-t-transparent"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-500 border-t-transparent"></div>
                       ) : (
                         <Upload className="w-4 h-4" />
                       )}
@@ -664,7 +664,7 @@ export default function TicketCreationForm() {
                             next.splice(idx + 1, 0, "");
                             setFormData({ ...formData, referenceUrls: next });
                           }}
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-indigo-300 text-indigo-700 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-indigo-800 dark:text-indigo-300 dark:hover:bg-indigo-900/20 transition-colors"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-primary-300 text-primary-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-primary-800 dark:text-primary-300 dark:hover:bg-primary-900/20 transition-colors"
                           aria-label="Add URL"
                           title="Add URL"
                         >
@@ -722,7 +722,7 @@ export default function TicketCreationForm() {
           <div className="flex gap-4">
             <button
               type="submit"
-              className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg"
+              className="flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg"
             >
               <Save className="w-4 h-4" />
               Create Ticket

@@ -76,7 +76,7 @@ export default function SalesDashboard() {
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Sales Dashboard</h1>
           <button
             onClick={() => navigate('/sales/create')}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600"
           >
             <Plus className="w-4 h-4" />
             New Opportunity
@@ -86,9 +86,9 @@ export default function SalesDashboard() {
         {/* Analytics Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Stages Bar Chart */}
-          <div className="bg-white dark:bg-servicenow-light p-4 rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark col-span-1 md:col-span-2 lg:col-span-1">
+          <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light p-4 rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark col-span-1 md:col-span-2 lg:col-span-1">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
-              <BarChart2 className="w-5 h-5 text-indigo-500" />
+              <BarChart2 className="w-5 h-5 text-primary-500" />
               Opportunity Stages
             </h3>
             <div className="h-64">
@@ -105,7 +105,7 @@ export default function SalesDashboard() {
           </div>
 
           {/* Product Pie Chart */}
-          <div className="bg-white dark:bg-servicenow-light p-4 rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark">
+          <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light p-4 rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
               <PieChartIcon className="w-5 h-5 text-green-500" />
               By Product
@@ -134,7 +134,7 @@ export default function SalesDashboard() {
           </div>
 
           {/* OEM Pie Chart */}
-          <div className="bg-white dark:bg-servicenow-light p-4 rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark">
+          <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light p-4 rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
               <TrendingUp className="w-5 h-5 text-orange-500" />
               By OEM
@@ -162,7 +162,7 @@ export default function SalesDashboard() {
             </div>
           </div>
           {/* Won vs Lost Pie Chart */}
-          <div className="bg-white dark:bg-servicenow-light p-4 rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark">
+          <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light p-4 rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
               <PieChartIcon className="w-5 h-5 text-red-500" />
               Won vs Lost
@@ -192,7 +192,7 @@ export default function SalesDashboard() {
         </div>
 
         {/* Opportunities List */}
-        <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark overflow-hidden transition-colors">
+        <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark overflow-hidden transition-colors">
           <div className="p-4 border-b border-gray-100 dark:border-servicenow-dark">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Opportunities</h3>
           </div>
@@ -208,7 +208,7 @@ export default function SalesDashboard() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-servicenow-light divide-y divide-gray-200 dark:divide-slate-700">
+              <tbody className="dark:bg-servicenow-light divide-y divide-gray-200 dark:divide-slate-700">
                 {opportunities.map((opp) => (
                   <tr key={opp.id} className="hover:bg-gray-50 dark:hover:bg-servicenow-dark transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">{opp.opportunity_name}</td>
@@ -222,7 +222,7 @@ export default function SalesDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         opp.stage_status === 'Approved' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 
-                        opp.stage_status === 'Completed' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300' : 
+                        opp.stage_status === 'Completed' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300' : 
                         'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
                       }`}>
                         {opp.stage_status}
@@ -231,7 +231,7 @@ export default function SalesDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
                       <button 
                         onClick={() => navigate(`/sales/${opp.id}`)}
-                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
                       >
                         View
                       </button>

@@ -108,7 +108,7 @@ export default function Sidebar({ userRole = 'engineer', currentPage, onNavigate
       {/* Toggle Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-9 bg-indigo-600 text-white p-1 rounded-full shadow-lg hover:bg-indigo-700 transition z-50 border-2 border-slate-50 dark:border-servicenow"
+        className="absolute -right-3 top-9 bg-primary-600 text-white p-1 rounded-full shadow-lg hover:bg-primary-700 transition z-50 border-2 border-slate-50 dark:border-servicenow"
       >
         {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>
@@ -132,7 +132,7 @@ export default function Sidebar({ userRole = 'engineer', currentPage, onNavigate
           {!isCollapsed && (
             <div 
               onClick={() => onNavigate('profile')}
-              className="group relative w-12 h-12 rounded-full border-2 border-indigo-500 overflow-hidden cursor-pointer hover:border-indigo-400 transition-all shrink-0 flex items-center justify-center bg-gray-800"
+              className="group relative w-12 h-12 rounded-full border-2 border-primary-500 overflow-hidden cursor-pointer hover:border-primary-400 transition-all shrink-0 flex items-center justify-center bg-gray-800"
               title="Edit Profile"
             >
               {profilePic ? (
@@ -170,7 +170,7 @@ export default function Sidebar({ userRole = 'engineer', currentPage, onNavigate
               title={isCollapsed ? item.label : ""}
               className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'
                 } py-3 rounded-lg transition ${isActive
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-primary-600 text-white'
                   : 'text-gray-300 hover:bg-gray-800 hover:text-white dark:hover:bg-servicenow-light'
                 }`}
             >

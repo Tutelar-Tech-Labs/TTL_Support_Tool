@@ -254,7 +254,7 @@ const AdminEmployeeDetail = () => {
               {worklogs.map((log) => (
                 <div
                   key={log._id}
-                  className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-900/40"
+                  className="p-4 bg-gradient-to-r from-blue-50 to-primary-50 dark:from-blue-900/20 dark:to-primary-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-900/40"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">

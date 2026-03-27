@@ -76,7 +76,7 @@ export default function EngineerLayout({ children }) {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-slate-50 dark:bg-servicenow">
+    <div className="flex min-h-screen w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:bg-servicenow">
       {/* Sidebar */}
       <Sidebar
         userRole={userRole}
@@ -86,7 +86,7 @@ export default function EngineerLayout({ children }) {
       />
 
       {/* Main content */}
-      <main className="flex-1 overflow-x-hidden">
+      <main className="flex-1 overflow-x-hidden bg-gradient-to-br from-[#91C4A4]/10 via-slate-50 to-[#94BBE9]/10 dark:from-servicenow dark:via-servicenow dark:to-servicenow">
         {children}
       </main>
     </div>

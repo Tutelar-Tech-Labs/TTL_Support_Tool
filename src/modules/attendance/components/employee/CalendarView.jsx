@@ -144,7 +144,7 @@ const CalendarView = ({ refreshTrigger }) => {
             {displayedLogs.map((log) => (
               <div
                 key={log._id}
-                className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-servicenow-dark dark:to-servicenow-light rounded-xl border-2 border-blue-200 dark:border-slate-700"
+                className="p-4 bg-gradient-to-r from-blue-50 to-primary-50 dark:from-servicenow-dark dark:to-servicenow-light rounded-xl border-2 border-blue-200 dark:border-slate-700"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">

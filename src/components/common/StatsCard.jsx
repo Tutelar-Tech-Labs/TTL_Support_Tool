@@ -21,7 +21,7 @@ export function StatsCard({ icon: Icon, title, value, color, subtitle, trend }) 
   const colors = colorStyles[color] ?? colorStyles.blue;
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-servicenow-light p-5 shadow-sm border border-slate-100 dark:border-servicenow-dark flex flex-col gap-3 transition-colors">
+    <div className="rounded-2xl bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light p-5 shadow-sm border border-slate-100 dark:border-servicenow-dark flex flex-col gap-3 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {Icon && (
