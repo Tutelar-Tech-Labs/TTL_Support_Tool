@@ -285,19 +285,19 @@ const EmployeeClaimPage = () => {
     return (
         <div className="p-6 max-w-7xl mx-auto text-gray-900 dark:text-white">
             <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
-                <DollarSign className="w-8 h-8 text-indigo-500" /> Reimbursement / Expense Claim
+                <DollarSign className="w-8 h-8 text-primary-500" /> Reimbursement / Expense Claim
             </h1>
 
             {/* Tabs */}
             <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
                 <button
-                    className={`pb-2 px-4 font-medium transition ${activeTab === 'new' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`}
+                    className={`pb-2 px-4 font-medium transition ${activeTab === 'new' ? 'border-b-2 border-primary-500 text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}
                     onClick={() => setActiveTab('new')}
                 >
                     {editingClaimId ? 'Edit Draft' : 'Create New Claim'}
                 </button>
                 <button
-                    className={`pb-2 px-4 font-medium transition ${activeTab === 'history' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`}
+                    className={`pb-2 px-4 font-medium transition ${activeTab === 'history' ? 'border-b-2 border-primary-500 text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}
                     onClick={() => setActiveTab('history')}
                 >
                     My Claims History
@@ -318,7 +318,7 @@ const EmployeeClaimPage = () => {
                                         name="expense_type"
                                         value={currentItem.expense_type}
                                         onChange={handleInputChange}
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
                                     >
                                         <option value="">Select Type</option>
                                         <option value="Stay">Stay</option>
@@ -338,10 +338,10 @@ const EmployeeClaimPage = () => {
                                             value={currentItem.transaction_date}
                                             onChange={handleInputChange}
                                             max={today}
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500 [&::-webkit-calendar-picker-indicator]:hidden"
+                                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500 [&::-webkit-calendar-picker-indicator]:hidden"
                                         />
                                         <Calendar
-                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-indigo-500"
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-primary-500"
                                             size={20}
                                             onClick={() => dateInputRef.current?.showPicker()}
                                         />
@@ -355,7 +355,7 @@ const EmployeeClaimPage = () => {
                                         name="business_purpose"
                                         value={currentItem.business_purpose}
                                         onChange={handleInputChange}
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
                                         placeholder="e.g. Client Meeting"
                                     />
                                 </div>
@@ -367,7 +367,7 @@ const EmployeeClaimPage = () => {
                                         name="vendor_name"
                                         value={currentItem.vendor_name}
                                         onChange={handleInputChange}
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
                                     />
                                 </div>
 
@@ -378,7 +378,7 @@ const EmployeeClaimPage = () => {
                                         name="city"
                                         value={currentItem.city}
                                         onChange={handleInputChange}
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
                                     />
                                 </div>
 
@@ -388,7 +388,7 @@ const EmployeeClaimPage = () => {
                                         name="payment_type"
                                         value={currentItem.payment_type}
                                         onChange={handleInputChange}
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
                                     >
                                         <option value="">Select Type</option>
                                         <option value="Cash">Cash</option>
@@ -404,7 +404,7 @@ const EmployeeClaimPage = () => {
                                         name="amount"
                                         value={currentItem.amount}
                                         onChange={handleInputChange}
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
                                     />
                                 </div>
 
@@ -415,7 +415,7 @@ const EmployeeClaimPage = () => {
                                         name="project_no"
                                         value={currentItem.project_no}
                                         onChange={handleInputChange}
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
                                     />
                                 </div>
 
@@ -426,7 +426,7 @@ const EmployeeClaimPage = () => {
                                         name="event"
                                         value={currentItem.event}
                                         onChange={handleInputChange}
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
                                     />
                                 </div>
 
@@ -436,7 +436,7 @@ const EmployeeClaimPage = () => {
                                         name="domestic_intl"
                                         value={currentItem.domestic_intl}
                                         onChange={handleInputChange}
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
                                     >
                                         <option value="Domestic">Domestic</option>
                                         <option value="International">International</option>
@@ -450,7 +450,7 @@ const EmployeeClaimPage = () => {
                                         checked={currentItem.billable}
                                         onChange={handleInputChange}
                                         id="billable"
-                                        className="w-4 h-4 accent-indigo-500"
+                                        className="w-4 h-4 accent-primary-500"
                                     />
                                     <label htmlFor="billable" className="text-sm text-gray-600 dark:text-gray-400">Billable to Project/Client?</label>
                                 </div>
@@ -460,7 +460,7 @@ const EmployeeClaimPage = () => {
                                     <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Receipt Upload (Drag & Drop)</label>
                                     <div
                                         {...getRootProps()}
-                                        className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition ${isDragActive ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10' : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                                        className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition ${isDragActive ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10' : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                                             }`}
                                     >
                                         <input {...getInputProps()} />
@@ -488,7 +488,7 @@ const EmployeeClaimPage = () => {
 
                             <button
                                 onClick={addExpenseItem}
-                                className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition"
+                                className="mt-6 w-full bg-primary-600 hover:bg-primary-700 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition"
                             >
                                 <Plus className="w-4 h-4" /> Add Expense
                             </button>
@@ -507,7 +507,7 @@ const EmployeeClaimPage = () => {
                                     value={reportName}
                                     onChange={(e) => setReportName(e.target.value)}
                                     placeholder="e.g. Dec 2025 Travel"
-                                    className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                    className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
                                 />
                             </div>
 
@@ -525,7 +525,7 @@ const EmployeeClaimPage = () => {
                                                 <div className="text-xs text-gray-500 truncate w-32">{item.vendor_name}</div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="font-bold text-indigo-600 dark:text-indigo-400">₹{item.amount}</div>
+                                                <div className="font-bold text-primary-600 dark:text-primary-400">₹{item.amount}</div>
                                                 <button
                                                     onClick={() => removeExpenseItem(item.id)}
                                                     className="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition p-1"
@@ -591,7 +591,7 @@ const EmployeeClaimPage = () => {
                                 claims.map(claim => (
                                     <tr key={claim.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
                                         <td className="p-4 text-gray-700 dark:text-gray-300">{new Date(claim.created_at).toLocaleDateString()}</td>
-                                        <td className="p-4 font-mono text-xs text-indigo-600 dark:text-indigo-400">{claim.claim_number || '-'}</td>
+                                        <td className="p-4 font-mono text-xs text-primary-600 dark:text-primary-400">{claim.claim_number || '-'}</td>
                                         <td className="p-4 font-medium text-gray-900 dark:text-white">{claim.report_name}</td>
                                         <td className="p-4 text-gray-900 dark:text-white">₹{claim.total_amount}</td>
                                         <td className="p-4 text-gray-600 dark:text-gray-400">{claim.currency}</td>
@@ -639,7 +639,7 @@ const EmployeeClaimPage = () => {
                                 <div>
                                     <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                         Claim Details
-                                        {selectedClaim.claim_number && <span className="text-sm font-mono text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded italic">({selectedClaim.claim_number})</span>}
+                                        {selectedClaim.claim_number && <span className="text-sm font-mono text-primary-500 bg-primary-50 dark:bg-primary-500/10 px-2 py-0.5 rounded italic">({selectedClaim.claim_number})</span>}
                                     </h2>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">{selectedClaim.report_name}</p>
                                 </div>
@@ -665,7 +665,7 @@ const EmployeeClaimPage = () => {
                                         {claimDetails.map((item, idx) => (
                                             <div key={item.id} className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                                                 <div className="flex justify-between items-start mb-2">
-                                                    <h3 className="font-semibold text-indigo-600 dark:text-indigo-400">{item.expense_type}</h3>
+                                                    <h3 className="font-semibold text-primary-600 dark:text-primary-400">{item.expense_type}</h3>
                                                     <span className="font-bold text-green-600 dark:text-green-400">₹{item.amount}</span>
                                                 </div>
                                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-4 text-sm text-gray-700 dark:text-gray-300">
@@ -683,7 +683,7 @@ const EmployeeClaimPage = () => {
                                                             href={`${API_URL}/${item.receipt_path}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline text-sm"
+                                                            className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 hover:underline text-sm"
                                                         >
                                                             <FileText className="w-4 h-4" /> View Receipt
                                                         </a>

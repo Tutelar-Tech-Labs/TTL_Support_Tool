@@ -446,12 +446,12 @@ export default function SalesOpportunityView() {
               onClick={() => !isLocked && setActiveStage(step)}
             >
               <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 transition-colors
-                ${isActive ? 'bg-indigo-600 text-white' : 
+                ${isActive ? 'bg-primary-600 text-white' : 
                   isCompleted ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400'}`}
               >
                 {isCompleted ? <CheckCircle className="w-6 h-6" /> : step}
               </div>
-              <span className={`text-xs font-medium text-center ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`}>
+              <span className={`text-xs font-medium text-center ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
                 {name}
               </span>
               {idx < stages.length - 1 && (
@@ -485,7 +485,7 @@ export default function SalesOpportunityView() {
         <div className="flex items-center gap-2">
           <label className={`cursor-pointer bg-white dark:bg-servicenow-dark border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded text-sm hover:bg-gray-50 dark:hover:bg-servicenow transition-colors flex items-center gap-2 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
             {isUploading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-indigo-500 border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-500 border-t-transparent"></div>
             ) : (
               <Upload className="w-4 h-4" /> 
             )}
@@ -515,7 +515,7 @@ export default function SalesOpportunityView() {
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <select 
-        className={`w-full border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-servicenow-dark dark:border-slate-600 dark:text-white ${errors[`stage${stage}.${field}`] ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300'}`}
+        className={`w-full border p-2 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-servicenow-dark dark:border-slate-600 dark:text-white ${errors[`stage${stage}.${field}`] ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300'}`}
         value={value || 'No'}
         onChange={(e) => {
             handleStageDataChange(stage, field, e.target.value);
@@ -556,7 +556,7 @@ export default function SalesOpportunityView() {
                 <button 
                   type="button"
                   onClick={onRequest}
-                  className="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm hover:bg-indigo-700 transition"
+                  className="bg-primary-600 text-white px-3 py-1.5 rounded text-sm hover:bg-primary-700 transition"
                 >
                   Request Access
                 </button>
@@ -588,13 +588,13 @@ export default function SalesOpportunityView() {
           {/* Section 1: Customer & Sales Details */}
           <div className="bg-white dark:bg-servicenow-light p-6 rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark">
             <h2 className="text-lg font-semibold mb-4 border-b dark:border-slate-700 pb-2 flex items-center gap-2 text-gray-800 dark:text-white">
-              <span className="bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+              <span className="bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-200 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
               Customer & Sales Details
             </h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Opportunity Name</label>
-                <input name="opportunity_name" placeholder="Enter opportunity name" value={header.opportunity_name} onChange={handleHeaderChange} className="w-full border border-gray-300 dark:border-slate-600 dark:bg-servicenow-dark dark:text-white p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500" />
+                <input name="opportunity_name" placeholder="Enter opportunity name" value={header.opportunity_name} onChange={handleHeaderChange} className="w-full border border-gray-300 dark:border-slate-600 dark:bg-servicenow-dark dark:text-white p-2 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -669,7 +669,7 @@ export default function SalesOpportunityView() {
           {/* Section 2: Technical & Distributor Details */}
           <div className="bg-white dark:bg-servicenow-light p-6 rounded-xl shadow-sm border border-gray-100 dark:border-servicenow-dark">
             <h2 className="text-lg font-semibold mb-4 border-b dark:border-slate-700 pb-2 flex items-center gap-2 text-gray-800 dark:text-white">
-              <span className="bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+              <span className="bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-200 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
               Technical & Distributor Details
             </h2>
             <div className="space-y-4">
@@ -1169,7 +1169,7 @@ export default function SalesOpportunityView() {
           
           <button 
             onClick={handleNextStage} 
-            className="px-6 py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-sm flex items-center gap-2 transition-colors"
+            className="px-6 py-2.5 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 shadow-sm flex items-center gap-2 transition-colors"
           >
             Next Stage <ChevronRight className="w-4 h-4" />
           </button>

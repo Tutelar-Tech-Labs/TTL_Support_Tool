@@ -6,7 +6,7 @@ const Loading = ({ fullScreen = false, size = 'large' }) => {
   };
 
   const spinner = (
-    <div className={`animate-spin rounded-full ${sizes[size]} border-t-indigo-600 border-b-indigo-600 border-l-transparent border-r-transparent`}></div>
+    <div className={`animate-spin rounded-full ${sizes[size]} border-t-primary-600 border-b-primary-600 border-l-transparent border-r-transparent`}></div>
   );
 
   if (fullScreen) {

@@ -218,7 +218,7 @@ export default function EngineerDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white dark:bg-servicenow-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-servicenow-dark">
+          <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-servicenow-dark">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
               Tickets by Severity
             </h3>
@@ -230,7 +230,7 @@ export default function EngineerDashboard() {
                   cy="50%"
                   labelLine={false}
                   label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
+                    percent > 0 ? `${name} ${(percent * 100).toFixed(0)}%` : ""
                   }
                   outerRadius={100}
                   fill="#8884d8"
@@ -246,7 +246,7 @@ export default function EngineerDashboard() {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white dark:bg-servicenow-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-servicenow-dark">
+          <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-servicenow-dark">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
               Tickets by Status
             </h3>
@@ -273,19 +273,19 @@ export default function EngineerDashboard() {
             </h2>
             <button
               onClick={() => navigate("/tickets/create")}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition font-medium"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 transition font-medium"
             >
               Create New Ticket
             </button>
           </div>
           {/* Filters */}
-          <div className="bg-white dark:bg-servicenow-light p-4 rounded-xl border border-gray-200 dark:border-servicenow-dark shadow-sm mb-4">
+          <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light p-4 rounded-xl border border-gray-200 dark:border-servicenow-dark shadow-sm mb-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-wrap gap-4 items-center">
                 <select
                   value={filterCustomer}
                   onChange={(e) => setFilterCustomer(e.target.value)}
-                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 >
                   <option value="All">All Customers</option>
                   {uniqueCustomers.filter(c => c !== 'All').map(c => (
@@ -295,7 +295,7 @@ export default function EngineerDashboard() {
                 <select
                   value={filterProduct}
                   onChange={(e) => setFilterProduct(e.target.value)}
-                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 >
                   <option value="All">All Products</option>
                   {uniqueProducts.filter(p => p !== 'All').map(p => (
@@ -305,7 +305,7 @@ export default function EngineerDashboard() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 >
                   <option value="All">All Statuses</option>
                   {uniqueStatuses.filter(s => s !== 'All').map(s => (
@@ -319,20 +319,20 @@ export default function EngineerDashboard() {
                   value={searchTicketId}
                   onChange={(e) => setSearchTicketId(e.target.value)}
                   placeholder="Search Ticket ID"
-                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2"
+                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2"
                 />
                 <input
                   type="date"
                   value={filterStartDate}
                   onChange={(e) => setFilterStartDate(e.target.value)}
-                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
                 <span className="text-sm text-gray-500">to</span>
                 <input
                   type="date"
                   value={filterEndDate}
                   onChange={(e) => setFilterEndDate(e.target.value)}
-                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
               </div>
             </div>

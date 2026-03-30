@@ -274,14 +274,7 @@ export const getTicketById = async (req, res) => {
       WHERE t.id = ?
     `, [id]);
     
-    if (tickets.length > 0) {
-      console.log(`[DEBUG] Ticket ${id} result:`, {
-        assigned_engineer: tickets[0].assigned_engineer,
-        engineer_email: tickets[0].engineer_email,
-        assigned_engineer_email: tickets[0].assigned_engineer_email,
-        assigned_engineer_phone: tickets[0].assigned_engineer_phone
-      });
-    }
+    // Debug logs removed to prevent console spam
 
     if (tickets.length === 0) {
       return res.status(404).json({ message: "Ticket not found" });
@@ -303,11 +296,20 @@ export const getTicketById = async (req, res) => {
       ticket.engineer_email = ticket.assigned_engineer_email;
     }
 
-    console.log("FINAL API RESPONSE:", {
-      assigned: ticket.assigned_engineer,
-      phone: ticket.engineer_phone,
-      email: ticket.engineer_email
-    });
+    // Debug log removed
+
+    // Ensure dates are ISO strings for frontend consistency
+    if (ticket.open_date && !(ticket.open_date instanceof Date)) {
+      ticket.open_date = new Date(ticket.open_date).toISOString();
+    } else if (ticket.open_date instanceof Date) {
+      ticket.open_date = ticket.open_date.toISOString();
+    }
+    
+    if (ticket.close_date && !(ticket.close_date instanceof Date)) {
+      ticket.close_date = new Date(ticket.close_date).toISOString();
+    } else if (ticket.close_date instanceof Date) {
+      ticket.close_date = ticket.close_date.toISOString();
+    }
 
     res.json({
       ticket,
@@ -329,12 +331,18 @@ export const updateTicket = async (req, res) => {
       close_date
     } = req.body;
 
+    let parsedOemTac = oem_tac_involved === 'null' ? null : oem_tac_involved;
+    let parsedTacCase = tac_case_number === 'null' ? null : tac_case_number;
+    let parsedEngRemarks = engineer_remarks === 'null' ? null : engineer_remarks;
+    let parsedProbRes = problem_resolution === 'null' ? null : problem_resolution;
+    let parsedRoughNotes = rough_notes === 'null' ? null : rough_notes;
+
     let query = `UPDATE tickets SET 
         status = ?, severity = ?, issue_subject = ?, issue_description = ?,
         engineer_remarks = ?, problem_resolution = ?, rough_notes = ?,
         oem_tac_involved = ?, tac_case_number = ?`;
 
-    const params = [status, severity, issue_subject, issue_description, engineer_remarks, problem_resolution, rough_notes, oem_tac_involved, tac_case_number];
+    const params = [status, severity, issue_subject, issue_description, parsedEngRemarks, parsedProbRes, parsedRoughNotes, parsedOemTac, parsedTacCase];
 
     if (timeline) {
       query += `, timeline = ?`;

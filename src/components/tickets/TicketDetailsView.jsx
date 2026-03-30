@@ -93,6 +93,7 @@ export default function TicketDetailsView() {
           engineerRemarks: t.engineer_remarks || "No remarks yet",
           problemResolution: t.problem_resolution || "Pending resolution",
           roughNotes: t.rough_notes || "",
+          referenceUrl: t.reference_url || "",
           openDate: t.open_date,
           closeDate: t.close_date,
           timeline: timelineData,
@@ -374,14 +375,14 @@ export default function TicketDetailsView() {
 
   // Auto-refresh logic for shared tickets
   useEffect(() => {
-    if (isEditing || isPendingAssignment) return; // Don't refresh while editing or assigning
+    if (isEditing || isPendingAssignment || isRoughNotesEditing) return; // Don't refresh while editing, assigning, or editing rough notes
 
     const pollInterval = setInterval(() => {
       fetchTicketDetails();
     }, 5000); // Poll every 5 seconds
 
     return () => clearInterval(pollInterval);
-  }, [id, isEditing, isPendingAssignment]); // Re-create interval if id, isEditing, or isPendingAssignment changes
+  }, [id, isEditing, isPendingAssignment, isRoughNotesEditing]); // Re-create interval if id, isEditing, isPendingAssignment, or isRoughNotesEditing changes
 
   const handleQuickResolve = async () => {
     if (!window.confirm("Are you sure you want to mark this ticket as resolved?")) return;
@@ -690,7 +691,7 @@ export default function TicketDetailsView() {
               ) : (
                 <button
                   onClick={handleSave}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+                  className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600"
                 >
                   <Save className="w-4 h-4" />
                   Save Changes
@@ -750,23 +751,36 @@ export default function TicketDetailsView() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                     Severity
                   </label>
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getSeverityColor(
-                      ticket.severity
-                    )}`}
-                  >
-                    {ticket.severity}
-                  </span>
+                  {isEditing ? (
+                    <select
+                      value={ticket.severity}
+                      onChange={(e) => setTicket({ ...ticket, severity: e.target.value })}
+                      className="input"
+                    >
+                      <option value="Critical">Critical</option>
+                      <option value="High">High</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Low">Low</option>
+                    </select>
+                  ) : (
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getSeverityColor(
+                        ticket.severity
+                      )}`}
+                    >
+                      {ticket.severity}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                   <Clock className="w-4 h-4 text-gray-400 dark:text-slate-500" />
                   <span>Opened</span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {ticket.openDate}
+                    {formatIST(ticket.openDate)}
                   </span>
                 </div>
               </div>
@@ -794,7 +808,7 @@ export default function TicketDetailsView() {
             {/* Issue Details */}
             <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <AlertCircle className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 Issue Details
               </h2>
               <div className="space-y-4">
@@ -839,13 +853,41 @@ export default function TicketDetailsView() {
                     </div>
                   )}
                 </div>
+                {ticket.referenceUrl && (
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Reference URL(s)</label>
+                    <div className="space-y-1">
+                      {ticket.referenceUrl.split('|').map((url, idx) => {
+                        const trimmed = url.trim();
+                        if (!trimmed) return null;
+                        const isLink = trimmed.startsWith('http://') || trimmed.startsWith('https://');
+                        return (
+                          <div key={idx}>
+                            {isLink ? (
+                              <a
+                                href={trimmed}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary-600 dark:text-primary-400 hover:underline text-sm break-all"
+                              >
+                                {trimmed}
+                              </a>
+                            ) : (
+                              <p className="text-gray-900 dark:text-white text-sm break-all">{trimmed}</p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Attachments Section */}
             <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Paperclip className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <Paperclip className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 Attachments
               </h2>
               <div className="space-y-4">
@@ -854,7 +896,7 @@ export default function TicketDetailsView() {
                     {ticket.attachments.map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded text-indigo-600 dark:text-indigo-400">
+                          <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded text-primary-600 dark:text-primary-400">
                             <Paperclip className="w-4 h-4" />
                           </div>
                           <div>
@@ -871,7 +913,7 @@ export default function TicketDetailsView() {
                             href={file.file_path}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                            className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
                           >
                             View
                           </a>
@@ -923,9 +965,9 @@ export default function TicketDetailsView() {
                       file:mr-4 file:py-2 file:px-4
                       file:rounded-full file:border-0
                       file:text-sm file:font-semibold
-                      file:bg-indigo-50 file:text-indigo-700
-                      hover:file:bg-indigo-100
-                      dark:file:bg-indigo-900/30 dark:file:text-indigo-300
+                      file:bg-primary-50 file:text-primary-700
+                      hover:file:bg-primary-100
+                      dark:file:bg-primary-900/30 dark:file:text-primary-300
                     "
                     />
                     {selectedFile && (
@@ -941,7 +983,7 @@ export default function TicketDetailsView() {
             {ticket.status === 'Closed' && (
               <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark p-6">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <Paperclip className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  <Paperclip className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                   Customer Feedback Proof
                 </h2>
                 <div className="space-y-3">
@@ -962,9 +1004,9 @@ export default function TicketDetailsView() {
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-full file:border-0
                     file:text-sm file:font-semibold
-                    file:bg-indigo-50 file:text-indigo-700
-                    hover:file:bg-indigo-100
-                    dark:file:bg-indigo-900/30 dark:file:text-indigo-300
+                    file:bg-primary-50 file:text-primary-700
+                    hover:file:bg-primary-100
+                    dark:file:bg-primary-900/30 dark:file:text-primary-300
                   "
                     />
                   </div>
@@ -1031,7 +1073,7 @@ export default function TicketDetailsView() {
                         }
                       }}
                       disabled={isUploadingFeedback || !feedbackFile}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
                     >
                       {isUploadingFeedback ? 'Uploading...' : 'Upload Proof'}
                     </button>
@@ -1086,7 +1128,7 @@ export default function TicketDetailsView() {
             {/* Updates & Comments */}
             <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Edit2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <Edit2 className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 Updates & Comments
               </h2>
               <div className="space-y-4">
@@ -1101,7 +1143,7 @@ export default function TicketDetailsView() {
                   <button
                     onClick={handleAddUpdate}
                     disabled={!newUpdate.trim()}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
                   >
                     Post Update
                   </button>
@@ -1125,7 +1167,7 @@ export default function TicketDetailsView() {
             {/* Timeline */}
             <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <Clock className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 Ticket Timeline
               </h2>
               <div className="space-y-4">
@@ -1158,7 +1200,7 @@ export default function TicketDetailsView() {
           <div className="space-y-6">
             <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark p-6">
               <div className="flex items-center gap-2 mb-4">
-                <Building className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <Building className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
                   Customer Info
                 </h2>
@@ -1200,13 +1242,13 @@ export default function TicketDetailsView() {
             {/* Engineer Info */}
             <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark p-6">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <User className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 Assigned Engineer
               </h3>
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-medium text-lg">
+                    <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-medium text-lg">
                       {ticket.assignedEngineer.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
@@ -1238,7 +1280,7 @@ export default function TicketDetailsView() {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-3">
+            <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 p-6 space-y-3">
               <h2 className="text-sm font-semibold text-gray-900">
                 Quick Actions
               </h2>
@@ -1259,7 +1301,7 @@ export default function TicketDetailsView() {
                       });
                     }}
                     value={ticket.assignedEngineer}
-                    className="flex-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="flex-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                   >
                     <option value={ticket.assignedEngineer}>{ticket.assignedEngineer}</option>
                     {availableEngineers?.filter(n => n !== ticket.assignedEngineer).map((name) => (
@@ -1268,7 +1310,7 @@ export default function TicketDetailsView() {
                   </select>
                   <button
                     onClick={handleAssignEngineer}
-                    className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm"
+                    className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm"
                   >
                     Assign
                   </button>
@@ -1295,9 +1337,9 @@ export default function TicketDetailsView() {
             </div>
 
             {/* Rough Sheet */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-3">
+            <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 p-6 space-y-3">
               <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                <StickyNote className="w-5 h-5 text-indigo-600" />
+                <StickyNote className="w-5 h-5 text-primary-600" />
                 Rough Sheet
               </h2>
 
@@ -1306,11 +1348,11 @@ export default function TicketDetailsView() {
                   value={ticket.roughNotes}
                   onChange={(e) => setTicket({ ...ticket, roughNotes: e.target.value })}
                   rows={10}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none text-sm"
                   placeholder="Type your notes here..."
                 />
               ) : (
-                <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 min-h-[150px] text-sm text-gray-700 whitespace-pre-wrap break-words">
+                <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 min-h-[150px] text-sm text-gray-700 whitespace-pre-wrap break-all overflow-hidden">
                   {ticket.roughNotes || "No notes yet..."}
                 </div>
               )}
@@ -1319,7 +1361,7 @@ export default function TicketDetailsView() {
                 {isRoughNotesEditing ? (
                   <button
                     onClick={handleSaveRoughNotes}
-                    className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+                    className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium"
                   >
                     Save Draft
                   </button>

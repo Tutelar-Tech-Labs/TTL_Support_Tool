@@ -308,7 +308,7 @@ export default function AdminDashboard() {
             <button
               onClick={() => setActiveTab('overview')}
               className={`px-4 py-2 rounded-md font-medium transition ${activeTab === 'overview'
-                ? 'bg-white dark:bg-servicenow-light text-indigo-600 dark:text-indigo-400 shadow-sm'
+                ? 'bg-white dark:bg-servicenow-light text-primary-600 dark:text-primary-400 shadow-sm'
                 : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
             >
@@ -317,7 +317,7 @@ export default function AdminDashboard() {
             <button
               onClick={() => setActiveTab('approvals')}
               className={`px-4 py-2 rounded-md font-medium transition ${activeTab === 'approvals'
-                ? 'bg-white dark:bg-servicenow-light text-indigo-600 dark:text-indigo-400 shadow-sm'
+                ? 'bg-white dark:bg-servicenow-light text-primary-600 dark:text-primary-400 shadow-sm'
                 : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
             >
@@ -333,7 +333,7 @@ export default function AdminDashboard() {
               <button
                 onClick={() => setActiveTab('sales_approvals')}
                 className={`px-4 py-2 rounded-md font-medium transition ${activeTab === 'sales_approvals'
-                  ? 'bg-white dark:bg-servicenow-light text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  ? 'bg-white dark:bg-servicenow-light text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
@@ -350,7 +350,7 @@ export default function AdminDashboard() {
               <button
                 onClick={() => setActiveTab('reimbursement_approvals')}
                 className={`px-4 py-2 rounded-md font-medium transition ${activeTab === 'reimbursement_approvals'
-                  ? 'bg-white dark:bg-servicenow-light text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  ? 'bg-white dark:bg-servicenow-light text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
@@ -397,7 +397,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div className="bg-white dark:bg-servicenow-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-servicenow-dark">
+              <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-servicenow-dark">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Tickets by Severity</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
@@ -406,7 +406,7 @@ export default function AdminDashboard() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => percent > 0 ? `${name} ${(percent * 100).toFixed(0)}%` : ""}
                       outerRadius={100}
                       fill="#8884d8"
                       dataKey="value"
@@ -421,7 +421,7 @@ export default function AdminDashboard() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="bg-white dark:bg-servicenow-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-servicenow-dark">
+              <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-servicenow-dark">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Tickets by Status</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={statusData}>
@@ -443,7 +443,7 @@ export default function AdminDashboard() {
               <h2 className="text-xl font-bold text-gray-900 mb-4">All Tickets</h2>
 
               {/* Filters and Export Section */}
-              <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-4">
+              <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light p-4 rounded-xl border border-gray-200 shadow-sm mb-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex flex-wrap gap-4 items-center">
                     <div className="flex items-center gap-2 text-gray-600">
@@ -455,7 +455,7 @@ export default function AdminDashboard() {
                     <select
                       value={filterCustomer}
                       onChange={(e) => setFilterCustomer(e.target.value)}
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                     >
                       <option value="All">All Customers</option>
                       {uniqueCustomers.filter(c => c !== 'All').map(c => (
@@ -467,7 +467,7 @@ export default function AdminDashboard() {
                     <select
                       value={filterProduct}
                       onChange={(e) => setFilterProduct(e.target.value)}
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                     >
                       <option value="All">All Products</option>
                       {uniqueProducts.filter(p => p !== 'All').map(p => (
@@ -479,7 +479,7 @@ export default function AdminDashboard() {
                     <select
                       value={filterEngineer}
                       onChange={(e) => setFilterEngineer(e.target.value)}
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                     >
                       <option value="All">All Engineers</option>
                       {uniqueEngineers.filter(e => e !== 'All').map(e => (
@@ -491,7 +491,7 @@ export default function AdminDashboard() {
                     <select
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                     >
                       <option value="All">All Statuses</option>
                       {uniqueStatuses.filter(s => s !== 'All').map(s => (
@@ -506,14 +506,14 @@ export default function AdminDashboard() {
                         type="date"
                         value={filterStartDate}
                         onChange={(e) => setFilterStartDate(e.target.value)}
-                        className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                       />
                       <span className="text-sm text-gray-600">To:</span>
                       <input
                         type="date"
                         value={filterEndDate}
                         onChange={(e) => setFilterEndDate(e.target.value)}
-                        className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                       />
                     </div>
                   </div>
@@ -524,11 +524,11 @@ export default function AdminDashboard() {
                       value={searchTicketId}
                       onChange={(e) => setSearchTicketId(e.target.value)}
                       placeholder="Search Ticket ID"
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2"
+                      className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2"
                     />
                     <button
                       onClick={handleExportCSV}
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition shadow-sm text-sm font-medium"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition shadow-sm text-sm font-medium"
                     >
                       <Download className="w-4 h-4" />
                       Export CSV
@@ -548,7 +548,7 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'approvals' && (
-          <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark overflow-hidden transition-colors">
+          <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark overflow-hidden transition-colors">
             <div className="p-6 border-b border-gray-200 dark:border-servicenow-dark">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Access Requests</h2>
             </div>
@@ -626,7 +626,7 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'sales_approvals' && (
-          <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark overflow-hidden transition-colors">
+          <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark overflow-hidden transition-colors">
             <div className="p-6 border-b border-gray-200 dark:border-servicenow-dark">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Sales Opportunity Approvals</h2>
             </div>
@@ -700,7 +700,7 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'reimbursement_approvals' && (
-          <div className="bg-white dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark overflow-hidden transition-colors">
+          <div className="bg-gradient-to-r from-[#91C4A4]/15 to-[#94BBE9]/15 backdrop-blur-md dark:bg-servicenow-light rounded-xl shadow-sm border border-gray-200 dark:border-servicenow-dark overflow-hidden transition-colors">
             <div className="p-6 border-b border-gray-200 dark:border-servicenow-dark">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Reimbursement / Expense Claims</h2>
             </div>
@@ -730,7 +730,7 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
                           {new Date(claim.created_at).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-indigo-600 dark:text-indigo-400">
+                        <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-primary-600 dark:text-primary-400">
                           {claim.claim_number || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -756,7 +756,7 @@ export default function AdminDashboard() {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => setSelectedClaim(claim)}
-                                className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-md dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                className="text-primary-600 hover:text-primary-900 bg-primary-50 px-3 py-1 rounded-md dark:bg-primary-900/20 dark:text-primary-400 dark:hover:text-primary-300"
                               >
                                 Details
                               </button>

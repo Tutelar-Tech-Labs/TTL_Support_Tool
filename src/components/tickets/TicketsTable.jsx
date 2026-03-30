@@ -280,7 +280,7 @@ export function TicketsTable({ tickets, onTicketClick, actionLabel = "View", onA
                         onTicketClick(ticket.id);
                       }
                     }}
-                    className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium"
+                    className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
                   >
                     {typeof actionLabel === 'function' ? actionLabel(ticket) : actionLabel}
                   </button>
@@ -310,7 +310,7 @@ export function TicketsTable({ tickets, onTicketClick, actionLabel = "View", onA
               key={n}
               onClick={() => setCurrentPage(n)}
               className={`px-3 py-1 text-sm rounded-md border ${n === clampedPage
-                ? 'bg-indigo-600 text-white border-indigo-600'
+                ? 'bg-primary-600 text-white border-primary-600'
                 : 'border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300'}`
               }
             >
