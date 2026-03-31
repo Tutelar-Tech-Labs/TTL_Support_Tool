@@ -214,8 +214,8 @@ export default function EmployeeManagement() {
       <div className="p-6 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Employee Management</h1>
-            <p className="text-slate-400">Manage team members and assigned company assets</p>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Employee Management</h1>
+            <p className="text-slate-500 dark:text-slate-400">Manage team members and assigned company assets</p>
           </div>
           <button
             onClick={() => setIsRegModalOpen(true)}
@@ -228,11 +228,11 @@ export default function EmployeeManagement() {
 
         {/* Search Bar */}
         <div className="mb-6 relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary-500 transition-colors" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500 group-focus-within:text-primary-500 transition-colors" />
           <input
             type="text"
             placeholder="Search employees by name, role or email..."
-            className="w-full bg-slate-900/50 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all backdrop-blur-sm"
+            className="w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl py-3 pl-12 pr-4 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all backdrop-blur-sm shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -253,15 +253,15 @@ export default function EmployeeManagement() {
             </div>
           ) : (
             filteredEmployees.map((emp) => (
-              <div key={emp.id} className="bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-2xl p-6 hover:bg-slate-800/40 transition-all group">
+              <div key={emp.id} className="bg-white dark:bg-slate-900/40 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-6 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all group shadow-sm">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary-600/20 flex items-center justify-center border border-primary-600/30 text-primary-500 font-bold text-xl uppercase">
+                    <div className="w-12 h-12 rounded-full bg-primary-600/20 flex items-center justify-center border border-primary-600/30 text-primary-500 font-bold text-xl uppercase text-shadow-glow">
                       {emp.name.charAt(0)}
                     </div>
                     <div>
-                      <h3 className="font-bold text-white group-hover:text-primary-400 transition-colors">{emp.name}</h3>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{emp.name}</h3>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                         <Shield className="w-3 h-3 capitalize" />
                         <span className="capitalize">{emp.role}</span>
                       </div>
@@ -273,7 +273,7 @@ export default function EmployeeManagement() {
                         setIsAssetModalOpen(true);
                         fetchUserAssets(emp.id);
                     }}
-                    className="p-2 bg-slate-800 group-hover:bg-primary-600 text-slate-400 group-hover:text-white rounded-lg transition-all"
+                    className="p-2 bg-slate-100 dark:bg-slate-800 group-hover:bg-primary-600 text-slate-500 dark:text-slate-400 group-hover:text-white rounded-lg transition-all"
                     title="Manage Assets"
                   >
                     <Laptop className="w-5 h-5" />
@@ -281,12 +281,12 @@ export default function EmployeeManagement() {
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-slate-400">
-                    <Mail className="w-4 h-4 text-slate-600" />
+                  <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <Mail className="w-4 h-4 text-slate-400 dark:text-slate-600" />
                     <span className="truncate">{emp.email}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-400">
-                    <Phone className="w-4 h-4 text-slate-600" />
+                  <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <Phone className="w-4 h-4 text-slate-400 dark:text-slate-600" />
                     <span>{emp.phone || 'N/A'}</span>
                   </div>
                 </div>
@@ -298,16 +298,16 @@ export default function EmployeeManagement() {
 
       {/* Registration Modal */}
       {isRegModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
-             <div className="flex items-center justify-between p-6 border-b border-slate-800 bg-primary-600/5">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/40 dark:bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+             <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800 bg-primary-600/5">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <UserPlus className="w-6 h-6 text-primary-500" />
                   Register Employee
                 </h2>
                 <button 
                     onClick={() => setIsRegModalOpen(false)}
-                    className="p-2 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition-colors border border-transparent hover:border-slate-700"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                 >
                     <X className="w-5 h-5" />
                 </button>
@@ -315,12 +315,12 @@ export default function EmployeeManagement() {
              <form onSubmit={handleRegister} className="p-6 space-y-4">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-1.5">Full Name</label>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">Full Name</label>
                         <input
                             required
                             type="text"
                             placeholder="John Doe"
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all"
                             value={regData.name}
                             onChange={(e) => setRegData({...regData, name: e.target.value})}
                         />
@@ -397,16 +397,16 @@ export default function EmployeeManagement() {
 
       {/* Asset Management Modal */}
       {isAssetModalOpen && selectedEmployee && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col md:flex-row h-[85vh] max-h-[800px]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/40 dark:bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-4xl shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col md:flex-row h-[85vh] max-h-[800px]">
             {/* Left: Assign Form */}
-            <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-slate-800 p-6 bg-slate-900/50">
+            <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 p-6 bg-slate-50 dark:bg-slate-900/50">
                 <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-full bg-primary-600/20 flex items-center justify-center text-primary-500 font-bold">
                         {selectedEmployee.name.charAt(0)}
                     </div>
                     <div>
-                        <h4 className="font-bold text-white text-sm">{selectedEmployee.name}</h4>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm">{selectedEmployee.name}</h4>
                         <p className="text-xs text-slate-500">Asset Assignment</p>
                     </div>
                 </div>
@@ -468,14 +468,14 @@ export default function EmployeeManagement() {
 
             {/* Right: Asset List */}
             <div className="flex-1 flex flex-col min-w-0">
-                <div className="flex items-center justify-between p-6 border-b border-slate-800">
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <History className="w-5 h-5 text-primary-500" />
                         Asset History
                     </h3>
                     <button 
                         onClick={() => setIsAssetModalOpen(false)}
-                        className="p-2 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition-colors"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
