@@ -84,3 +84,38 @@ body {
     transform: translateX(100%);
   }
 }
+
+/* FullCalendar Dark Mode Overrides */
+.dark .calendar-container .fc {
+  @apply text-slate-100;
+}
+
+.dark .fc-col-header-cell {
+  @apply bg-servicenow-dark border-servicenow-light text-slate-300 !important;
+}
+
+.dark .fc-daygrid-day-number {
+  @apply text-slate-200 mt-1 mr-2;
+}
+
+.dark .fc-theme-standard td, 
+.dark .fc-theme-standard th,
+.dark .fc-theme-standard .fc-scrollgrid {
+  @apply border-servicenow-light !important;
+}
+
+.dark .fc-button-primary {
+  @apply bg-servicenow-light border-servicenow-dark hover:bg-servicenow-dark hover:border-servicenow-light transition-colors !important;
+}
+
+.dark .fc-button-active {
+  @apply bg-primary-600 border-primary-700 !important;
+}
+
+.dark .fc-day-today {
+  @apply bg-primary-900/10 !important;
+}
+
+.dark .fc-list-day-cushion {
+  @apply bg-servicenow-light !important;
+}
