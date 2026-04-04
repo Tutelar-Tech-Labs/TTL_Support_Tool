@@ -71,7 +71,7 @@ export default function TicketCreationForm() {
   const handleCustomerChange = (e) => {
     const customerName = e.target.value;
     const selected = customers.find(c => c.name === customerName);
-    
+
     if (selected) {
       setIsOtherSelected(false);
       setSelectedCustomer(selected);
@@ -87,8 +87,8 @@ export default function TicketCreationForm() {
     } else if (customerName === "Others") {
       setIsOtherSelected(true);
       setSelectedCustomer(null);
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         customerName: "",
         customerId: "",
         uniqueId: "",
@@ -328,6 +328,7 @@ export default function TicketCreationForm() {
                   <option value="Testing">Testing</option>
                   <option value="BCP">BCP</option>
                   <option value="Upgrade">Upgrade</option>
+                  <option value="Internal">Internal</option>
                 </select>
               </div>
 
