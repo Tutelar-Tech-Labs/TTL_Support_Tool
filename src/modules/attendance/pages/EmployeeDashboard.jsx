@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import HeaderCard from '../components/employee/HeaderCard';
-import AttendanceToggle from '../components/employee/AttendanceToggle';
+import PunchClockCard from '../components/employee/PunchClockCard';
+import WeeklyWorkChart from '../components/employee/WeeklyWorkChart';
 import WorklogForm from '../components/employee/WorklogForm';
 import CalendarView from '../components/employee/CalendarView';
 import WorklogHistory from '../components/employee/WorklogHistory';
+import RegularizationForm from '../components/employee/RegularizationForm';
 import Button from '../components/ui/Button';
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('daily'); // 'daily', 'calendar', 'history'
+  const [activeTab, setActiveTab] = useState('daily'); // 'daily', 'calendar', 'history', 'regularize'
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleRefresh = () => {
@@ -22,6 +24,15 @@ const EmployeeDashboard = () => {
       <div className="max-w-6xl mx-auto">
 
         <HeaderCard user={user} />
+
+        {/* Punch Clock & Weekly Chart — Always visible */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <PunchClockCard 
+            onPunchUpdate={handleRefresh} 
+            refreshTrigger={refreshTrigger}
+          />
+          <WeeklyWorkChart refreshTrigger={refreshTrigger} />
+        </div>
 
         {/* Tab Navigation */}
         <div className="flex space-x-4 mb-6 sticky top-4 z-20 bg-white/80 dark:bg-servicenow-light/80 p-2 rounded-xl backdrop-blur-md shadow-sm border border-white/20 dark:border-white/10">
@@ -55,6 +66,16 @@ const EmployeeDashboard = () => {
           >
             History
           </button>
+          <button
+            onClick={() => setActiveTab('regularize')}
+            className={`px-6 py-2 rounded-lg font-semibold transition-all duration-200 ${
+              activeTab === 'regularize'
+                ? 'bg-primary-600 text-white shadow-lg transform scale-105'
+                : 'text-dark-600 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-servicenow'
+            }`}
+          >
+            Regularize
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -62,10 +83,6 @@ const EmployeeDashboard = () => {
           {activeTab === 'daily' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-6">
-                <AttendanceToggle 
-                  onAttendanceUpdate={handleRefresh} 
-                  refreshTrigger={refreshTrigger}
-                />
                 <WorklogForm onSuccess={handleRefresh} />
               </div>
               <div className="md:col-span-1">
@@ -86,10 +103,10 @@ const EmployeeDashboard = () => {
                 <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-2xl border border-green-100 dark:border-green-900/30 mt-6 sticky top-64">
                   <h3 className="text-lg font-bold text-green-800 dark:text-green-400 mb-2">Tips</h3>
                   <ul className="text-sm text-green-700 dark:text-green-300 space-y-2 list-disc pl-4">
-                    <li>Mark attendance daily to track presence</li>
+                    <li>Punch in to start tracking your work hours</li>
                     <li>Add worklogs with accurate time ranges</li>
                     <li>Worklogs cannot overlap in time</li>
-                    <li>Use detailed activity descriptions</li>
+                    <li>Punch out when you're done for the day</li>
                   </ul>
                 </div>
               </div>
@@ -103,6 +120,10 @@ const EmployeeDashboard = () => {
           {activeTab === 'history' && (
             <WorklogHistory refreshTrigger={refreshTrigger} />
           )}
+
+          {activeTab === 'regularize' && (
+            <RegularizationForm refreshTrigger={refreshTrigger} onSuccess={handleRefresh} />
+          )}
         </div>
       </div>
     </div>
@@ -110,3 +131,4 @@ const EmployeeDashboard = () => {
 };
 
 export default EmployeeDashboard;
+
