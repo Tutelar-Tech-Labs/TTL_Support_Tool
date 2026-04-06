@@ -6,9 +6,13 @@ import { db } from "../config/db.js";
 export const getAssets = async (req, res) => {
   try {
     const [assets] = await db.query(`
-      SELECT a.*, u.name as user_name, u.email as user_email 
+      SELECT 
+        a.*, 
+        u.name as user_name, u.email as user_email,
+        c.name as customer_name
       FROM assets a
-      JOIN users u ON a.user_id = u.id
+      LEFT JOIN users u ON a.user_id = u.id
+      LEFT JOIN customers c ON a.customer_id = c.id
       ORDER BY a.created_at DESC
     `);
     res.json(assets);
@@ -37,39 +41,41 @@ export const getUserAssets = async (req, res) => {
 // @access  Private/Admin
 export const createAsset = async (req, res) => {
   try {
-    const { user_id, asset_type, model_no, serial_no, given_date } = req.body;
+    const { user_id, customer_id, asset_type, model_no, serial_no, specs, given_date, status } = req.body;
     
-    if (!user_id || !asset_type) {
-      return res.status(400).json({ message: "User ID and Asset Type are required" });
+    if (!asset_type) {
+      return res.status(400).json({ message: "Asset Type is required" });
     }
 
+    const assignedStatus = status || 'available';
+
     const [result] = await db.query(
-      "INSERT INTO assets (user_id, asset_type, model_no, serial_no, given_date, status) VALUES (?, ?, ?, ?, ?, 'assigned')",
-      [user_id, asset_type, model_no, serial_no, given_date || new Date()]
+      "INSERT INTO assets (user_id, customer_id, asset_type, model_no, serial_no, specs, given_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [user_id || null, customer_id || null, asset_type, model_no || null, serial_no || null, specs || null, given_date || new Date(), assignedStatus]
     );
 
     res.status(201).json({
       status: "success",
-      message: "Asset assigned successfully",
+      message: "Asset created successfully",
       assetId: result.insertId
     });
   } catch (error) {
     console.error("Create asset error:", error);
-    res.status(500).json({ message: "Server error assigning asset" });
+    res.status(500).json({ message: "Server error creating asset" });
   }
 };
 
-// @desc    Update asset status (return, damage, etc.)
+// @desc    Update asset
 // @route   PUT /api/assets/:id
 // @access  Private/Admin
 export const updateAsset = async (req, res) => {
   try {
     const { id } = req.params;
-    const { asset_type, model_no, serial_no, given_date, return_date, status } = req.body;
+    const { user_id, customer_id, asset_type, model_no, serial_no, specs, given_date, return_date, status } = req.body;
 
     const [result] = await db.query(
-      "UPDATE assets SET asset_type = ?, model_no = ?, serial_no = ?, given_date = ?, return_date = ?, status = ? WHERE id = ?",
-      [asset_type, model_no, serial_no, given_date, return_date, status, id]
+      "UPDATE assets SET user_id = ?, customer_id = ?, asset_type = ?, model_no = ?, serial_no = ?, specs = ?, given_date = ?, return_date = ?, status = ? WHERE id = ?",
+      [user_id || null, customer_id || null, asset_type, model_no || null, serial_no || null, specs || null, given_date || null, return_date || null, status, id]
     );
 
     if (result.affectedRows === 0) {
