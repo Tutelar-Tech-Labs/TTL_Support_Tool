@@ -67,6 +67,7 @@ export default function Sidebar({ userRole = 'engineer', currentPage, onNavigate
       subItems: [
         { label: 'Customer Management', page: 'admin/customers' },
         { label: 'Employee Management', page: 'admin/employees' },
+        { label: 'Asset Management', page: 'admin/assets' }
       ]
     },
     {

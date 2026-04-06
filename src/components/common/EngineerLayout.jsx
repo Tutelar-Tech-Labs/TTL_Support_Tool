@@ -82,6 +82,7 @@ export default function EngineerLayout({ children }) {
       case 'admin/attendance-approval':
       case 'admin/customers':
       case 'admin/employees':
+      case 'admin/assets':
         navigate(`/${page}`);
         break;
       default:
