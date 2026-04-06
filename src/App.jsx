@@ -13,6 +13,7 @@ import SalesOpportunityView from "./components/sales/SalesOpportunityView";
 import EngineerLayout from "./components/common/EngineerLayout";
 import CustomerManagement from "./pages/admin/CustomerManagement";
 import EmployeeManagement from "./pages/admin/EmployeeManagement";
+import AdminAssetManagement from "./modules/assets/pages/AdminAssetManagement";
 
 // Attendance Module Imports
 import AttendanceEmployeeDashboard from "./modules/attendance/pages/EmployeeDashboard";
@@ -43,6 +44,12 @@ export default function App() {
         <Route path="/admin/employees" element={
           <ProtectedRoute roles={['admin']}>
             <EmployeeManagement />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/assets" element={
+          <ProtectedRoute roles={['admin']}>
+            <AdminAssetManagement />
           </ProtectedRoute>
         } />
 
