@@ -97,6 +97,7 @@ const ApplyLeave = () => {
               <option value="">-- Select --</option>
               <option value="Planned">Planned Leave</option>
               <option value="Sick">Sick Leave</option>
+              <option value="CompOff">Comp Off Leave</option>
             </select>
             {leaveType === 'Planned' && (
               <p className="mt-2 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">

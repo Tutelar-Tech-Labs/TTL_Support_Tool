@@ -11,6 +11,11 @@ export const leaveAPI = {
     return response.data;
   },
 
+  getLeaveBalance: async () => {
+    const response = await axios.get('/leave/balance');
+    return response.data;
+  },
+
   getAllLeaves: async () => {
     const response = await axios.get('/admin/leaves');
     return response.data;
@@ -21,3 +26,4 @@ export const leaveAPI = {
     return response.data;
   },
 };
+

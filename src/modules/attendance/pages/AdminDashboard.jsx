@@ -142,8 +142,8 @@ const AdminDashboard = () => {
           <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 mb-1">This Month</p>
-                <p className="text-4xl font-bold">{format(new Date(), 'MMM')}</p>
+                <p className="text-purple-100 mb-1">Upcoming Holidays</p>
+                <p className="text-4xl font-bold">{stats.upcomingHolidays || 0}</p>
               </div>
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
                 <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
@@ -152,6 +152,65 @@ const AdminDashboard = () => {
               </div>
             </div>
           </Card>
+        </div>
+
+        {/* Action Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+           <Card onClick={() => navigate('/admin/leave-approval')} className="cursor-pointer hover:scale-[1.02] transition-transform border-l-4 border-l-amber-500">
+              <div className="flex items-center justify-between">
+                 <div>
+                    <p className="text-dark-500 dark:text-slate-400 text-sm font-medium">Pending Leaves</p>
+                    <p className="text-2xl font-bold text-dark-900 dark:text-white">{stats.pendingLeaves || 0}</p>
+                 </div>
+                 <div className="text-amber-500">
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                 </div>
+              </div>
+           </Card>
+           
+           <Card onClick={() => navigate('/admin/compoff-approval')} className="cursor-pointer hover:scale-[1.02] transition-transform border-l-4 border-l-blue-500">
+              <div className="flex items-center justify-between">
+                 <div>
+                    <p className="text-dark-500 dark:text-slate-400 text-sm font-medium">Pending Comp Off</p>
+                    <p className="text-2xl font-bold text-dark-900 dark:text-white">{stats.pendingCompOff || 0}</p>
+                 </div>
+                 <div className="text-blue-500">
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                 </div>
+              </div>
+           </Card>
+
+           <Card onClick={() => navigate('/admin/holidays')} className="cursor-pointer hover:scale-[1.02] transition-transform border-l-4 border-l-red-500">
+              <div className="flex items-center justify-between">
+                 <div>
+                    <p className="text-dark-500 dark:text-slate-400 text-sm font-medium">Manage Holidays</p>
+                    <p className="text-sm text-dark-400">Click to view/add</p>
+                 </div>
+                 <div className="text-red-500">
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                 </div>
+              </div>
+           </Card>
+
+           <Card onClick={() => navigate('/admin/activity')} className="cursor-pointer hover:scale-[1.02] transition-transform border-l-4 border-l-green-500">
+              <div className="flex items-center justify-between">
+                 <div>
+                    <p className="text-dark-500 dark:text-slate-400 text-sm font-medium">Live Activity</p>
+                    <p className="text-sm text-dark-400">Real-time status</p>
+                 </div>
+                 <div className="text-green-500">
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                 </div>
+              </div>
+           </Card>
         </div>
 
         {/* Attendance Report Section */}

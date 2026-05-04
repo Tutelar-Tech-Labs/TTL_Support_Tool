@@ -1,6 +1,10 @@
 import User from '../../models/mongo/User.js';
 import Attendance from '../../models/mongo/Attendance.js';
 import Worklog from '../../models/mongo/Worklog.js';
+import Holiday from '../../models/mongo/Holiday.js';
+import CompOffRequest from '../../models/mongo/CompOffRequest.js';
+import Leave from '../../models/mongo/Leave.js';
+
 import generateCSV from '../../utils/generateCSV.js';
 // Google Drive service imported dynamically below to avoid crash if googleapis not installed
 
@@ -345,12 +349,22 @@ export const getDashboardStats = async (req, res, next) => {
     // 2. Active Today
     const today = new Date().toISOString().split('T')[0];
     const activeToday = await Attendance.countDocuments({ date: today });
+
+    // 3. Pending Approvals
+    const pendingLeaves = await Leave.countDocuments({ status: 'Pending' });
+    const pendingCompOff = await CompOffRequest.countDocuments({ status: 'Pending' });
+
+    // 4. Upcoming Holidays
+    const upcomingHolidays = await Holiday.countDocuments({ date: { $gte: today } });
     
     res.status(200).json({
       success: true,
       data: {
         totalEmployees,
         activeToday,
+        pendingLeaves,
+        pendingCompOff,
+        upcomingHolidays,
       },
     });
   } catch (error) {

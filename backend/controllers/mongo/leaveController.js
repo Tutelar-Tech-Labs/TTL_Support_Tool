@@ -1,5 +1,24 @@
 import Leave from '../../models/mongo/Leave.js';
 import User from '../../models/mongo/User.js';
+import CompOffRequest from '../../models/mongo/CompOffRequest.js';
+
+// @desc    Get current employee's paid leave balance
+// @route   GET /api/leave/balance
+// @access  Private
+export const getLeaveBalance = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.mongoUser._id).select('paidLeaves');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    // If paidLeaves is undefined (old record), default to 12
+    const paidLeaves = user.paidLeaves ?? 12;
+    res.status(200).json({ success: true, data: { paidLeaves } });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 // @desc    Apply for leave
 // @route   POST /api/leave/apply
@@ -12,8 +31,8 @@ export const applyLeave = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Leave type, from date, and to date are required' });
     }
 
-    if (!['Planned', 'Sick'].includes(leaveType)) {
-      return res.status(400).json({ success: false, message: 'Leave type must be Planned or Sick' });
+    if (!['Planned', 'Sick', 'CompOff'].includes(leaveType)) {
+      return res.status(400).json({ success: false, message: 'Leave type must be Planned, Sick, or CompOff' });
     }
 
     const from = new Date(fromDate);
@@ -21,6 +40,32 @@ export const applyLeave = async (req, res, next) => {
 
     if (to < from) {
       return res.status(400).json({ success: false, message: 'To date must be after from date' });
+    }
+
+    // Calculate total days (inclusive)
+    const diffTime = Math.abs(to - from);
+    const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    // CompOff specific checks
+    if (leaveType === 'CompOff') {
+      const availableCredits = await CompOffRequest.find({
+        userId: req.mongoUser._id,
+        status: 'Approved',
+        isUsed: false,
+        expiryDate: { $gt: new Date() }
+      });
+
+      if (availableCredits.length < totalDays) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient Comp Off credits. Available: ${availableCredits.length}, Requested: ${totalDays}`
+        });
+      }
+
+      // Mark credits as used (we'll do this after leave is approved, or maybe now?)
+      // Actually, standard practice is to mark them as "Pending Usage" or similar.
+      // But for simplicity, let's just create the leave. 
+      // We should probably link the credits to the leave application.
     }
 
     // Planned leave must be at least 14 days in advance
@@ -37,10 +82,6 @@ export const applyLeave = async (req, res, next) => {
         });
       }
     }
-
-    // Calculate total days (inclusive)
-    const diffTime = Math.abs(to - from);
-    const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
     const leave = await Leave.create({
       userId: req.mongoUser._id,
@@ -123,6 +164,22 @@ export const reviewLeave = async (req, res, next) => {
     leave.reviewedBy = req.mongoUser._id;
     leave.reviewedAt = new Date();
     await leave.save();
+
+    // If CompOff leave is approved, mark the credits as used
+    if (status === 'Approved' && leave.leaveType === 'CompOff') {
+      const credits = await CompOffRequest.find({
+        userId: leave.userId,
+        status: 'Approved',
+        isUsed: false,
+        expiryDate: { $gt: new Date() }
+      }).sort({ expiryDate: 1 }).limit(leave.totalDays);
+
+      for (const credit of credits) {
+        credit.isUsed = true;
+        credit.usedOnLeaveId = leave._id;
+        await credit.save();
+      }
+    }
 
     res.status(200).json({
       success: true,

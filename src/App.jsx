@@ -27,6 +27,11 @@ import ApplyLeave from "./modules/attendance/pages/ApplyLeave";
 import MyLeaves from "./modules/attendance/pages/MyLeaves";
 import AdminLeaveList from "./modules/attendance/pages/AdminLeaveList";
 import AdminRegularizationList from "./modules/attendance/pages/AdminRegularizationList";
+import HolidayCalendar from "./modules/attendance/pages/HolidayCalendar";
+import AdminHolidayPage from "./modules/attendance/pages/AdminHolidayPage";
+import ApplyCompOff from "./modules/attendance/pages/ApplyCompOff";
+import MyCompOff from "./modules/attendance/pages/MyCompOff";
+import AdminCompOffPage from "./modules/attendance/pages/AdminCompOffPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 export default function App() {
@@ -174,6 +179,46 @@ export default function App() {
             </EngineerLayout>
           </ProtectedRoute>
         } />
+
+        {/* Holiday Routes */}
+        <Route path="/holidays" element={
+          <ProtectedRoute>
+            <EngineerLayout>
+              <HolidayCalendar />
+            </EngineerLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/holidays" element={
+          <ProtectedRoute roles={['admin']}>
+            <EngineerLayout>
+              <AdminHolidayPage />
+            </EngineerLayout>
+          </ProtectedRoute>
+        } />
+
+        {/* Comp Off Routes */}
+        <Route path="/compoff/apply" element={
+          <ProtectedRoute>
+            <EngineerLayout>
+              <ApplyCompOff />
+            </EngineerLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/compoff/my" element={
+          <ProtectedRoute>
+            <EngineerLayout>
+              <MyCompOff />
+            </EngineerLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/compoff-approval" element={
+          <ProtectedRoute roles={['admin']}>
+            <EngineerLayout>
+              <AdminCompOffPage />
+            </EngineerLayout>
+          </ProtectedRoute>
+        } />
+
       </Routes>
       <Toaster position="top-right" />
     </>

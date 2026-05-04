@@ -17,10 +17,21 @@ const MyLeaves = () => {
   const navigate = useNavigate();
   const [leaves, setLeaves] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [paidLeaves, setPaidLeaves] = useState(null);
 
   useEffect(() => {
     fetchLeaves();
+    fetchBalance();
   }, []);
+
+  const fetchBalance = async () => {
+    try {
+      const res = await leaveAPI.getLeaveBalance();
+      setPaidLeaves(res.data.paidLeaves);
+    } catch (error) {
+      console.error('Failed to fetch leave balance:', error);
+    }
+  };
 
   const fetchLeaves = async () => {
     try {
@@ -64,6 +75,22 @@ const MyLeaves = () => {
             Apply Leave
           </button>
         </div>
+
+        {/* Paid Leave Balance Banner */}
+        {paidLeaves !== null && (
+          <div className="mb-6 flex items-center gap-4 bg-white dark:bg-servicenow-light rounded-2xl shadow-sm border border-gray-200 dark:border-servicenow-dark px-6 py-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-md shrink-0">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-dark-500 dark:text-slate-400 uppercase tracking-wide">Paid Leaves Available</p>
+              <p className="text-3xl font-bold text-dark-900 dark:text-white">{paidLeaves}</p>
+            </div>
+
+          </div>
+        )}
 
         {/* Loading */}
         {isLoading && (
