@@ -31,6 +31,13 @@ export default function EngineerLayout({ children }) {
     if (path === '/admin/attendance-approval') return 'admin/attendance-approval';
     if (path === '/admin/customers') return 'admin/customers';
     if (path === '/admin/employees') return 'admin/employees';
+    if (path === '/holidays') return 'holidays';
+    if (path === '/admin/holidays') return 'admin/holidays';
+    if (path === '/compoff/my') return 'compoff/my';
+    if (path === '/compoff/apply') return 'compoff/apply';
+    if (path === '/admin/compoff-approval') return 'admin/compoff-approval';
+    if (path === '/holiday-permission') return 'holiday-permission';
+    if (path === '/admin/holiday-permission') return 'admin/holiday-permission';
     return 'engineer-dashboard';
   };
 
@@ -83,6 +90,13 @@ export default function EngineerLayout({ children }) {
       case 'admin/customers':
       case 'admin/employees':
       case 'admin/assets':
+      case 'holidays':
+      case 'admin/holidays':
+      case 'compoff/my':
+      case 'compoff/apply':
+      case 'admin/compoff-approval':
+      case 'holiday-permission':
+      case 'admin/holiday-permission':
         navigate(`/${page}`);
         break;
       default:

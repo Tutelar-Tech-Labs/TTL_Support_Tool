@@ -1,13 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LayoutDashboard, TicketPlus, Shield, LogOut, Users, BookOpen, FileText, Briefcase, PieChart, UserPlus, ChevronLeft, ChevronRight, Sun, Moon, ClipboardCheck, UserCog, Pencil, Activity, CalendarDays, CalendarCheck } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { isSuperAdmin } from '../../utils/superAdmin';
+import { adminAPI } from '../../modules/attendance/api/admin';
 
 export default function Sidebar({ userRole = 'engineer', currentPage, onNavigate, onLogout }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [pendingCounts, setPendingCounts] = useState({ leaves: 0, compOff: 0 });
   const { theme, toggleTheme } = useTheme();
   const userEmail = localStorage.getItem("userEmail");
   const isSalesAllowed = isSuperAdmin(userEmail);
+
+  useEffect(() => {
+    if (userRole === 'admin') {
+      fetchPendingCounts();
+      const interval = setInterval(fetchPendingCounts, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [userRole]);
+
+  const fetchPendingCounts = async () => {
+    try {
+      const response = await adminAPI.getDashboardStats();
+      if (response.success) {
+        setPendingCounts({
+          leaves: response.data.pendingLeaves || 0,
+          compOff: response.data.pendingCompOff || 0,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch pending counts');
+    }
+  };
 
   const menuItems = [
     {
@@ -67,7 +91,9 @@ export default function Sidebar({ userRole = 'engineer', currentPage, onNavigate
       subItems: [
         { label: 'Customer Management', page: 'admin/customers' },
         { label: 'Employee Management', page: 'admin/employees' },
-        { label: 'Asset Management', page: 'admin/assets' }
+        { label: 'Asset Management', page: 'admin/assets' },
+        { label: 'Holiday Management', page: 'admin/holidays' },
+        { label: 'Comp Off Approval', page: 'admin/compoff-approval' }
       ]
     },
     {
@@ -79,8 +105,17 @@ export default function Sidebar({ userRole = 'engineer', currentPage, onNavigate
     {
       icon: CalendarDays,
       label: 'Leave',
-      page: 'leave/my',
-      roles: ['engineer', 'admin', 'sales']
+      roles: ['engineer', 'admin', 'sales'],
+      subItems: [
+        ...(userEmail !== 'rambalaji@tutelartechlabs.com' ? [
+          { label: 'My Leaves', page: 'leave/my' },
+          { label: 'Apply Leave', page: 'leave/apply' },
+        ] : []),
+        { label: 'Holiday Calendar', page: 'holidays' },
+        ...(userEmail !== 'rambalaji@tutelartechlabs.com' ? [
+          { label: 'Comp Off', page: 'compoff/my' }
+        ] : [])
+      ]
     }
   ];
 
@@ -179,18 +214,27 @@ export default function Sidebar({ userRole = 'engineer', currentPage, onNavigate
 
               {hasSubItems && !isCollapsed && (
                 <div className="mt-1 ml-9 space-y-1">
-                  {item.subItems.map((sub) => (
+                  {item.subItems.map((sub) => {
+                    const badgeCount = sub.page === 'admin/compoff-approval' ? pendingCounts.compOff :
+                                      sub.page === 'admin/leave-approval' ? pendingCounts.leaves : 0;
+                    return (
                     <button
                       key={sub.page}
                       onClick={() => onNavigate(sub.page)}
-                      className={`w-full text-left px-4 py-2 rounded-md transition text-sm ${currentPage === sub.page
+                      className={`w-full text-left px-4 py-2 rounded-md transition text-sm flex items-center justify-between ${currentPage === sub.page
                           ? 'bg-primary-600/20 text-primary-400 font-medium'
                           : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                         }`}
                     >
-                      {sub.label}
+                      <span>{sub.label}</span>
+                      {badgeCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                          {badgeCount}
+                        </span>
+                      )}
                     </button>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </div>

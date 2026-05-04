@@ -13,6 +13,12 @@ export const employeeAPI = {
     return response.data;
   },
 
+  // Get attendance by date range
+  getAttendanceByRange: async (from, to) => {
+    const response = await axios.get(`/attendance/range?from=${from}&to=${to}`);
+    return response.data;
+  },
+
   // Create worklog
   createWorklog: async (data) => {
     const response = await axios.post('/worklogs', data);

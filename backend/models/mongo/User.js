@@ -45,6 +45,10 @@ const userSchema = new mongoose.Schema(
       enum: ['employee', 'admin', 'sales'], // Added sales to match main app
       default: 'employee',
     },
+    paidLeaves: {
+      type: Number,
+      default: 12,
+    },
   },
   {
     timestamps: true,

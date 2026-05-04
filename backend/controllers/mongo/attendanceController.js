@@ -95,6 +95,41 @@ export const getAttendance = async (req, res, next) => {
   }
 };
 
+// @desc    Get attendance by date range
+// @route   GET /api/attendance/range?from=YYYY-MM-DD&to=YYYY-MM-DD
+// @access  Private (Employee)
+export const getAttendanceByRange = async (req, res, next) => {
+  try {
+    const { from, to } = req.query;
+
+    if (!from || !/^\d{4}-\d{2}-\d{2}$/.test(from)) {
+      return res.status(400).json({
+        success: false,
+        message: 'From date must be in YYYY-MM-DD format',
+      });
+    }
+
+    if (!to || !/^\d{4}-\d{2}-\d{2}$/.test(to)) {
+      return res.status(400).json({
+        success: false,
+        message: 'To date must be in YYYY-MM-DD format',
+      });
+    }
+
+    const attendance = await Attendance.find({
+      userId: req.mongoUser._id,
+      date: { $gte: from, $lte: to },
+    }).sort({ date: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: { attendance },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Create worklog
 // @route   POST /api/attendance/worklogs
 // @access  Private (Employee)

@@ -5,6 +5,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { employeeAPI } from '../../api/employee';
+import { holidayAPI } from '../../api/holiday';
 import Card from '../ui/Card';
 
 const CalendarView = ({ refreshTrigger }) => {
@@ -24,11 +25,11 @@ const CalendarView = ({ refreshTrigger }) => {
       const today = new Date();
       const start = format(new Date(today.getFullYear(), today.getMonth() - 3, 1), 'yyyy-MM-dd');
       const end = format(new Date(today.getFullYear(), today.getMonth() + 3, 0), 'yyyy-MM-dd');
-      const currentMonth = format(today, 'yyyy-MM');
 
-      const [attendanceRes, worklogsRes] = await Promise.all([
-        employeeAPI.getAttendance(currentMonth),
+      const [attendanceRes, worklogsRes, holidayRes] = await Promise.all([
+        employeeAPI.getAttendanceByRange(start, end),
         employeeAPI.getWorklogsByRange(start, end),
+        holidayAPI.getHolidays(),
       ]);
 
       const attendanceEvents = attendanceRes.data.attendance.map((att) => ({
@@ -37,6 +38,16 @@ const CalendarView = ({ refreshTrigger }) => {
         date: att.date,
         backgroundColor: '#10b981',
         borderColor: '#059669',
+        textColor: '#ffffff',
+        display: 'block'
+      }));
+
+      const holidayEvents = holidayRes.data.holidays.map((h) => ({
+        id: `hol-${h._id}`,
+        title: `🎉 ${h.title}`,
+        date: h.date,
+        backgroundColor: '#f59e0b',
+        borderColor: '#d97706',
         textColor: '#ffffff',
         display: 'block'
       }));
@@ -66,7 +77,7 @@ const CalendarView = ({ refreshTrigger }) => {
         };
       });
 
-      setEvents([...attendanceEvents, ...worklogEvents]);
+      setEvents([...attendanceEvents, ...worklogEvents, ...holidayEvents]);
     } catch (error) {
       console.error('Failed to load calendar data:', error);
       toast.error('Failed to load calendar data');
@@ -147,6 +158,10 @@ const CalendarView = ({ refreshTrigger }) => {
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-blue-500 rounded"></div>
             <span className="text-dark-600 dark:text-slate-300">Worklogs Added</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-amber-500 rounded"></div>
+            <span className="text-dark-600 dark:text-slate-300">Holiday</span>
           </div>
         </div>
       </Card>
