@@ -6,7 +6,7 @@ import User from '../../models/mongo/User.js';
 // @access  Private
 export const applyCompOff = async (req, res, next) => {
   try {
-    const { dateWorked, reason } = req.body;
+    const { dateWorked, reason, fromTime, toTime } = req.body;
 
     if (!dateWorked) {
       return res.status(400).json({ success: false, message: 'Date is required' });
@@ -16,10 +16,33 @@ export const applyCompOff = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Reason is required' });
     }
 
+    if (!fromTime || !/^([01]\d|2[0-3]):([0-5]\d)$/.test(fromTime)) {
+      return res.status(400).json({ success: false, message: 'From time is required (HH:mm)' });
+    }
+
+    if (!toTime || !/^([01]\d|2[0-3]):([0-5]\d)$/.test(toTime)) {
+      return res.status(400).json({ success: false, message: 'To time is required (HH:mm)' });
+    }
+
+    // Calculate duration
+    const [fh, fm] = fromTime.split(':').map(Number);
+    const [th, tm] = toTime.split(':').map(Number);
+    const fromMinutes = fh * 60 + fm;
+    const toMinutes = th * 60 + tm;
+
+    if (toMinutes <= fromMinutes) {
+      return res.status(400).json({ success: false, message: 'End time must be after start time' });
+    }
+
+    const hoursWorked = parseFloat(((toMinutes - fromMinutes) / 60).toFixed(2));
+
     const request = await CompOffRequest.create({
       userId: req.mongoUser._id,
       dateWorked,
       reason: reason.trim(),
+      fromTime,
+      toTime,
+      hoursWorked,
     });
 
     res.status(201).json({

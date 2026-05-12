@@ -254,7 +254,33 @@ export const getTickets = async (req, res) => {
       ORDER BY t.open_date DESC
     `);
 
-    res.json(tickets);
+    const formattedTickets = tickets.map(ticket => {
+      let timeline = [];
+      if (ticket.timeline) {
+        try {
+          timeline = typeof ticket.timeline === 'string' 
+            ? JSON.parse(ticket.timeline) 
+            : ticket.timeline;
+        } catch {
+          timeline = [];
+        }
+      }
+      
+      let openDate = ticket.open_date;
+      if (openDate && !(openDate instanceof Date)) {
+        openDate = new Date(openDate).toISOString().split('T')[0];
+      } else if (openDate instanceof Date) {
+        openDate = openDate.toISOString().split('T')[0];
+      }
+      
+      return {
+        ...ticket,
+        openDate: openDate,
+        timeline: timeline
+      };
+    });
+
+    res.json(formattedTickets);
   } catch (error) {
     console.error("Get tickets error:", error);
     res.status(500).json({ message: "Server error fetching tickets" });
@@ -537,6 +563,39 @@ export const deleteAttachment = async (req, res) => {
   } catch (error) {
     console.error("Delete attachment error:", error);
     res.status(500).json({ message: "Server error deleting attachment" });
+  }
+};
+
+export const deleteTicket = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // First, delete all attachments
+    const [attachments] = await db.query("SELECT file_path FROM ticket_attachments WHERE ticket_id = ?", [id]);
+    for (const att of attachments) {
+      try {
+        if (att.file_path && !/^https?:\/\//i.test(att.file_path) && fs.existsSync(att.file_path)) {
+          fs.unlinkSync(att.file_path);
+        }
+      } catch (e) {
+        console.warn("Failed to delete local file:", att.file_path, e);
+      }
+    }
+    
+    // Delete ticket attachments from DB
+    await db.query("DELETE FROM ticket_attachments WHERE ticket_id = ?", [id]);
+    
+    // Delete ticket from DB
+    const [result] = await db.query("DELETE FROM tickets WHERE id = ? OR ticket_number = ?", [id, id]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    res.json({ message: "Ticket deleted successfully" });
+  } catch (error) {
+    console.error("Delete ticket error:", error);
+    res.status(500).json({ message: "Server error deleting ticket" });
   }
 };
 

@@ -24,6 +24,10 @@ export default function TicketDetailsView() {
   const userRole = localStorage.getItem("userRole") || "engineer";
   const currentUserName = localStorage.getItem("userName");
   const currentUserId = localStorage.getItem("userId");
+  const userEmail = localStorage.getItem("userEmail");
+
+  const superAdminEmails = (import.meta.env.VITE_SUPER_ADMIN_EMAIL || '').split(',').map(email => email.trim());
+  const isSuperAdminUser = userEmail && superAdminEmails.includes(userEmail);
 
   const [ticket, setTicket] = useState(null);
   const [newUpdate, setNewUpdate] = useState("");
@@ -438,6 +442,29 @@ export default function TicketDetailsView() {
     }
   };
 
+  const handleDeleteTicket = async () => {
+    if (!window.confirm("Are you sure you want to delete this ticket? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/tickets/${ticket.id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        toast.success("Ticket deleted successfully!");
+        navigate(userRole === 'admin' ? "/admin/dashboard" : "/engineer/dashboard");
+      } else {
+        const data = await response.json();
+        toast.error(data.message || "Failed to delete ticket");
+      }
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      toast.error("Error deleting ticket");
+    }
+  };
+
   const handleAddUpdate = async (isResolution = false) => {
     if (!newUpdate.trim()) {
       if (isResolution) toast.error("Please provide a resolution comment first.");
@@ -786,13 +813,23 @@ export default function TicketDetailsView() {
               )}
 
               {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-servicenow-dark text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-servicenow"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  Edit
-                </button>
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-servicenow-dark text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-servicenow"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Edit
+                  </button>
+                  {isSuperAdminUser && (
+                    <button
+                      onClick={handleDeleteTicket}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </>
               ) : (
                 <button
                   onClick={handleSave}

@@ -200,6 +200,32 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteTicket = async (ticketId) => {
+    if (!window.confirm("Are you sure you want to delete this ticket? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticketId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setTickets(tickets.filter(t => t.id !== ticketId));
+        toast.success("Ticket deleted successfully!");
+      } else {
+        const data = await response.json();
+        toast.error(data.message || "Failed to delete ticket");
+      }
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      toast.error("Error deleting ticket");
+    }
+  };
+
+  const superAdminEmails = (import.meta.env.VITE_SUPER_ADMIN_EMAIL || '').split(',').map(email => email.trim());
+  const isSuperAdminUser = userEmail && superAdminEmails.includes(userEmail);
+
   // Filter Logic
   const uniqueCustomers = ['All', ...new Set(tickets.map(t => t.customer).filter(Boolean))];
   const uniqueProducts = ['All', ...new Set(tickets.map(t => t.product).filter(Boolean))];
@@ -233,11 +259,24 @@ export default function AdminDashboard() {
       return;
     }
 
+    const parseComments = (tl) => {
+      if (!tl || !Array.isArray(tl)) return "";
+      const comments = tl.filter(entry => 
+        entry.event === "Comment added" || entry.event === "Resolution Provided"
+      );
+      return comments.map(entry => {
+        const dateStr = entry.date ? new Date(entry.date).toLocaleString("en-IN") : "";
+        const userStr = entry.user || "System";
+        const commentText = entry.meta?.text || "";
+        return `[${dateStr}] ${userStr}: ${commentText}`;
+      }).join(" | ");
+    };
+
     const headers = [
       "Ticket ID", "Severity", "Ticket Type", "Status", "Technology", "Customer Name",
       "Serial No", "Engineer Name", "Issue Subject", "Issue Description",
       "OEM TAC Involved", "TAC Case No.", "Engineer Remarks", "Problem Resolution",
-      "Open Date", "Close Date"
+      "Open Date", "Close Date", "Comments"
     ];
 
     const csvContent = [
@@ -258,7 +297,8 @@ export default function AdminDashboard() {
         `"${(t.engineer_remarks || '').replace(/"/g, '""')}"`,
         `"${(t.problem_resolution || '').replace(/"/g, '""')}"`,
         t.openDate,
-        t.close_date ? new Date(t.close_date).toISOString().split('T')[0] : ''
+        t.close_date ? new Date(t.close_date).toISOString().split('T')[0] : '',
+        `"${parseComments(t.timeline).replace(/"/g, '""')}"`
       ].join(","))
     ].join("\n");
 
@@ -576,6 +616,8 @@ export default function AdminDashboard() {
                 tickets={filteredTickets}
                 onTicketClick={(ticketId) => navigate(`/tickets/${ticketId}`)}
                 actionLabel="View"
+                showDelete={isSuperAdminUser}
+                onDeleteClick={handleDeleteTicket}
               />
             </div>
           </>

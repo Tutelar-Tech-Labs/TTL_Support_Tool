@@ -457,7 +457,7 @@ const EmployeeClaimPage = () => {
 
                                 {/* Receipt Upload */}
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Receipt Upload (Drag & Drop)</label>
+                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Receipt Upload (Drag & Drop) *</label>
                                     <div
                                         {...getRootProps()}
                                         className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition ${isDragActive ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10' : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'

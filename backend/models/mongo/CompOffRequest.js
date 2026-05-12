@@ -15,6 +15,19 @@ const compOffRequestSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    hoursWorked: {
+      type: Number,
+      min: 0,
+      default: null,
+    },
+    fromTime: {
+      type: String, // HH:mm
+      default: null,
+    },
+    toTime: {
+      type: String, // HH:mm
+      default: null,
+    },
     status: {
       type: String,
       enum: ['Pending', 'Approved', 'Rejected'],

@@ -9,6 +9,7 @@ import {
   updateTicket,
   transferTicket,
   deleteAttachment,
+  deleteTicket,
   sendFeedbackEmail
 } from "../controllers/ticketController.js";
 
@@ -35,6 +36,7 @@ router.get("/dashboard", getTickets);
 router.get("/:id", getTicketById);
 router.put("/:id", upload.single("attachment"), updateTicket);
 router.put("/:id/transfer", transferTicket);
+router.delete("/:id", deleteTicket);
 router.delete("/:ticketId/attachments/:attachmentId", deleteAttachment);
 router.post("/:id/feedback-email", upload.single("feedback"), sendFeedbackEmail);
 
