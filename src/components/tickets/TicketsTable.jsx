@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getTimestamp, formatDuration } from "../../utils/time";
 
-export function TicketsTable({ tickets, onTicketClick, actionLabel = "View", onActionClick, itemsPerPage = 20 }) {
+export function TicketsTable({ tickets, onTicketClick, actionLabel = "View", onActionClick, onDeleteClick, itemsPerPage = 20, showDelete = false }) {
   // Live refresh every second to keep timers updated
   const [tick, setTick] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -271,19 +271,34 @@ export function TicketsTable({ tickets, onTicketClick, actionLabel = "View", onA
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (onActionClick) {
-                        onActionClick(ticket.id);
-                      } else {
-                        onTicketClick(ticket.id);
-                      }
-                    }}
-                    className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
-                  >
-                    {typeof actionLabel === 'function' ? actionLabel(ticket) : actionLabel}
-                  </button>
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onActionClick) {
+                          onActionClick(ticket.id);
+                        } else {
+                          onTicketClick(ticket.id);
+                        }
+                      }}
+                      className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+                    >
+                      {typeof actionLabel === 'function' ? actionLabel(ticket) : actionLabel}
+                    </button>
+                    {showDelete && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onDeleteClick) {
+                            onDeleteClick(ticket.id);
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </td>
                 </>
                 ); })()}
