@@ -338,6 +338,30 @@ export const exportGlobalAttendanceCSV = async (req, res, next) => {
   }
 };
 
+// Helper: Get date string in IST (YYYY-MM-DD)
+const getISTDateString = (date = new Date()) => {
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  return new Date(date.getTime() + istOffset).toISOString().split('T')[0];
+};
+
+// Helper: Find previous working day (skips weekends + holidays)
+const getPreviousWorkingDay = async () => {
+  // Fetch all holiday dates once for checking
+  const holidays = await Holiday.find({}, 'date').lean();
+  const holidaySet = new Set(holidays.map((h) => h.date));
+
+  let cursor = new Date();
+  // Walk backwards until we find a weekday non-holiday
+  while (true) {
+    cursor.setDate(cursor.getDate() - 1);
+    const dateStr = getISTDateString(cursor);
+    const dayOfWeek = cursor.getDay(); // 0 = Sunday, 6 = Saturday
+    if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidaySet.has(dateStr)) {
+      return dateStr;
+    }
+  }
+};
+
 // @desc    Get dashboard stats
 // @route   GET /api/admin/stats
 // @access  Private (Admin)
@@ -345,9 +369,9 @@ export const getDashboardStats = async (req, res, next) => {
   try {
     // 1. Total Users (Employees + Admins)
     const totalEmployees = await User.countDocuments({});
-    
+
     // 2. Active Today
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTDateString();
     const activeToday = await Attendance.countDocuments({ date: today });
 
     // 3. Pending Approvals
@@ -356,7 +380,46 @@ export const getDashboardStats = async (req, res, next) => {
 
     // 4. Upcoming Holidays
     const upcomingHolidays = await Holiday.countDocuments({ date: { $gte: today } });
-    
+
+    // 5. Missing Attendance & Worklog for previous working day
+    const prevWorkingDay = await getPreviousWorkingDay();
+
+    // Get all employees (non-admin roles)
+    const allEmployees = await User.find({ role: 'employee' })
+      .select('_id fullName employeeId email')
+      .lean();
+
+    // Who HAS attendance on prevWorkingDay?
+    const attendanceOnDay = await Attendance.find({ date: prevWorkingDay })
+      .select('userId')
+      .lean();
+    const attendedUserIds = new Set(attendanceOnDay.map((a) => a.userId.toString()));
+
+    // Who HAS worklogs on prevWorkingDay?
+    const worklogsOnDay = await Worklog.find({ date: prevWorkingDay })
+      .select('userId')
+      .lean();
+    const loggedUserIds = new Set(worklogsOnDay.map((w) => w.userId.toString()));
+
+    // Build missing lists
+    const missingAttendance = allEmployees
+      .filter((emp) => !attendedUserIds.has(emp._id.toString()))
+      .map((emp) => ({
+        id: emp._id,
+        fullName: emp.fullName,
+        employeeId: emp.employeeId,
+        email: emp.email,
+      }));
+
+    const missingWorklog = allEmployees
+      .filter((emp) => !loggedUserIds.has(emp._id.toString()))
+      .map((emp) => ({
+        id: emp._id,
+        fullName: emp.fullName,
+        employeeId: emp.employeeId,
+        email: emp.email,
+      }));
+
     res.status(200).json({
       success: true,
       data: {
@@ -365,6 +428,11 @@ export const getDashboardStats = async (req, res, next) => {
         pendingLeaves,
         pendingCompOff,
         upcomingHolidays,
+        alerts: {
+          previousWorkingDay: prevWorkingDay,
+          missingAttendance,
+          missingWorklog,
+        },
       },
     });
   } catch (error) {

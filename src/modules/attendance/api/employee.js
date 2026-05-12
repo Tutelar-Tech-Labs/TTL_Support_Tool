@@ -19,6 +19,12 @@ export const employeeAPI = {
     return response.data;
   },
 
+  // Get employee's own alerts (missed attendance / worklog for prev working day)
+  getMyAlerts: async () => {
+    const response = await axios.get('/employee/alerts');
+    return response.data;
+  },
+
   // Create worklog
   createWorklog: async (data) => {
     const response = await axios.post('/worklogs', data);

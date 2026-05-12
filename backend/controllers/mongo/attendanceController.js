@@ -130,6 +130,51 @@ export const getAttendanceByRange = async (req, res, next) => {
   }
 };
 
+// Helper: Get IST date string
+const getISTDateString = (date = new Date()) => {
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  return new Date(date.getTime() + istOffset).toISOString().split('T')[0];
+};
+
+// Helper: Previous working day (skips weekends + holidays)
+const getPrevWorkingDay = async () => {
+  const Holiday = (await import('../../models/mongo/Holiday.js')).default;
+  const holidays = await Holiday.find({}, 'date').lean();
+  const holidaySet = new Set(holidays.map((h) => h.date));
+  let cursor = new Date();
+  while (true) {
+    cursor.setDate(cursor.getDate() - 1);
+    const dateStr = getISTDateString(cursor);
+    const dow = cursor.getDay(); // 0=Sun, 6=Sat
+    if (dow !== 0 && dow !== 6 && !holidaySet.has(dateStr)) return dateStr;
+  }
+};
+
+// @desc    Get employee's own alerts for the previous working day
+// @route   GET /api/employee/alerts
+// @access  Private (Employee)
+export const getMyAlerts = async (req, res, next) => {
+  try {
+    const prevDay = await getPrevWorkingDay();
+
+    const [attendanceRecord, worklogRecord] = await Promise.all([
+      Attendance.findOne({ userId: req.mongoUser._id, date: prevDay }).lean(),
+      Worklog.findOne({ userId: req.mongoUser._id, date: prevDay }).lean(),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        previousWorkingDay: prevDay,
+        missedAttendance: !attendanceRecord,
+        missedWorklog: !worklogRecord,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Create worklog
 // @route   POST /api/attendance/worklogs
 // @access  Private (Employee)

@@ -7,6 +7,7 @@ import {
   getWorklogsByDate,
   getWorklogsByRange,
   updateProfile,
+  getMyAlerts,
 } from '../controllers/mongo/attendanceController.js';
 import {
   getAllEmployees,
@@ -65,6 +66,7 @@ router.post('/worklogs', createWorklog);
 router.get('/worklogs', getWorklogsByDate);
 router.get('/worklogs/range', getWorklogsByRange);
 router.put('/attendance/profile', updateProfile);
+router.get('/employee/alerts', getMyAlerts);
 
 // --- Punch Clock Routes ---
 router.post('/punch/in', punchIn);

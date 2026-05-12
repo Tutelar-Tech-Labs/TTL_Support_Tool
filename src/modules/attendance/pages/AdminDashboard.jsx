@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format, subDays } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../api/admin';
 import { useAuth } from '../hooks/useAuth';
@@ -8,8 +8,153 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 
+const ALERT_ADMIN_EMAIL = 'rambalaji@tutelartechlabs.com';
+
+// ── Missing Records Panel ──────────────────────────────────────────────────
+const MissingRecordsPanel = ({ alerts }) => {
+  const [openSection, setOpenSection] = useState('attendance');
+
+  if (!alerts) return null;
+
+  const { previousWorkingDay, missingAttendance = [], missingWorklog = [] } = alerts;
+  const allClear = missingAttendance.length === 0 && missingWorklog.length === 0;
+  const dayLabel = previousWorkingDay
+    ? format(parseISO(previousWorkingDay), 'EEEE, MMM d yyyy')
+    : '';
+
+  return (
+    <div className="mb-8">
+      {/* Panel header */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-9 h-9 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+          <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-dark-900 dark:text-white leading-tight">
+            Yesterday's Missing Records
+          </h2>
+          <p className="text-xs text-dark-500 dark:text-slate-400">Previous working day: {dayLabel}</p>
+        </div>
+
+      </div>
+
+      {allClear ? (
+        <Card className="border-l-4 border-l-green-500 bg-green-50 dark:bg-green-900/10">
+          <p className="text-green-700 dark:text-green-300 text-sm font-medium text-center py-2">
+            ✅ All employees marked attendance and submitted worklogs for {dayLabel}.
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Missing Attendance */}
+          <Card className="border-l-4 border-l-red-500">
+            <button
+              className="w-full flex items-center justify-between mb-3"
+              onClick={() => setOpenSection(openSection === 'attendance' ? null : 'attendance')}
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-dark-900 dark:text-white text-sm">Missed Attendance</span>
+                <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-xs font-bold">
+                  {missingAttendance.length}
+                </span>
+              </div>
+              <svg
+                className={`w-4 h-4 text-dark-400 transition-transform ${openSection === 'attendance' ? 'rotate-180' : ''}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {openSection === 'attendance' && (
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {missingAttendance.length === 0 ? (
+                  <p className="text-sm text-green-600 dark:text-green-400 text-center py-2">✅ All good!</p>
+                ) : (
+                  missingAttendance.map((emp) => (
+                    <div
+                      key={emp.id}
+                      className="flex items-center gap-3 p-2.5 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/30"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {emp.fullName.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-dark-900 dark:text-white truncate">{emp.fullName}</p>
+                        <p className="text-xs text-dark-500 dark:text-slate-400 font-mono">{emp.employeeId}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </Card>
+
+          {/* Missing Worklog */}
+          <Card className="border-l-4 border-l-orange-500">
+            <button
+              className="w-full flex items-center justify-between mb-3"
+              onClick={() => setOpenSection(openSection === 'worklog' ? null : 'worklog')}
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-dark-900 dark:text-white text-sm">Missed Worklog</span>
+                <span className="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 text-xs font-bold">
+                  {missingWorklog.length}
+                </span>
+              </div>
+              <svg
+                className={`w-4 h-4 text-dark-400 transition-transform ${openSection === 'worklog' ? 'rotate-180' : ''}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {openSection === 'worklog' && (
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {missingWorklog.length === 0 ? (
+                  <p className="text-sm text-green-600 dark:text-green-400 text-center py-2">✅ All good!</p>
+                ) : (
+                  missingWorklog.map((emp) => (
+                    <div
+                      key={emp.id}
+                      className="flex items-center gap-3 p-2.5 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-800/30"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {emp.fullName.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-dark-900 dark:text-white truncate">{emp.fullName}</p>
+                        <p className="text-xs text-dark-500 dark:text-slate-400 font-mono">{emp.employeeId}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
+// ────────────────────────────────────────────────────────────────────────────
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,6 +162,7 @@ const AdminDashboard = () => {
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [stats, setStats] = useState({ totalEmployees: 0, activeToday: 0 });
+  const [alerts, setAlerts] = useState(null);
   // Date range for report
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 1), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -40,6 +186,9 @@ const AdminDashboard = () => {
       const statsResponse = await adminAPI.getDashboardStats();
       if (statsResponse.success) {
         setStats(statsResponse.data);
+        if (statsResponse.data.alerts) {
+          setAlerts(statsResponse.data.alerts);
+        }
       }
     } catch (error) {
       console.error('Failed to load employees:', error);
@@ -153,6 +302,11 @@ const AdminDashboard = () => {
             </div>
           </Card>
         </div>
+
+        {/* Missing Records Notification — only for rambalaji */}
+        {user && user.email && user.email.toLowerCase().trim() === ALERT_ADMIN_EMAIL && (
+          <MissingRecordsPanel alerts={alerts} />
+        )}
 
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

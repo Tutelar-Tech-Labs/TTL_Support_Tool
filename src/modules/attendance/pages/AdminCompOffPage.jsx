@@ -72,6 +72,7 @@ const AdminCompOffPage = () => {
               <tr className="text-left border-b border-slate-200 dark:border-slate-700">
                 <th className="pb-4 font-semibold text-dark-900 dark:text-white">Employee</th>
                 <th className="pb-4 font-semibold text-dark-900 dark:text-white">Date Worked</th>
+                <th className="pb-4 font-semibold text-dark-900 dark:text-white">Time Worked</th>
                 <th className="pb-4 font-semibold text-dark-900 dark:text-white">Reason</th>
                 <th className="pb-4 font-semibold text-dark-900 dark:text-white">Status</th>
                 <th className="pb-4 font-semibold text-dark-900 dark:text-white">Action</th>
@@ -99,6 +100,22 @@ const AdminCompOffPage = () => {
                     {format(new Date(request.dateWorked), 'MMM dd, yyyy')}
                   </td>
                   <td className="py-4">
+                    {request.fromTime && request.toTime ? (
+                      <div className="space-y-0.5">
+                        <span className="text-sm font-medium text-dark-800 dark:text-slate-200">
+                          {request.fromTime} – {request.toTime}
+                        </span>
+                        {request.hoursWorked != null && (
+                          <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            {request.hoursWorked} hrs
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-dark-400 dark:text-slate-500">—</span>
+                    )}
+                  </td>
+                  <td className="py-4">
                     <div className="max-w-xs truncate text-dark-900 dark:text-white" title={request.reason}>
                       {request.reason}
                     </div>
@@ -124,7 +141,7 @@ const AdminCompOffPage = () => {
               ))}
               {requests.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="py-8 text-center text-dark-500">No requests found.</td>
+                  <td colSpan="6" className="py-8 text-center text-dark-500">No requests found.</td>
                 </tr>
               )}
             </tbody>
@@ -150,6 +167,21 @@ const AdminCompOffPage = () => {
                   {format(new Date(selectedRequest.dateWorked), 'EEEE, MMMM do, yyyy')}
                 </div>
               </div>
+              {selectedRequest.fromTime && selectedRequest.toTime && (
+                <div className="space-y-2">
+                  <div className="text-sm text-dark-500 dark:text-slate-400">Time Worked</div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-dark-900 dark:text-white">
+                      {selectedRequest.fromTime} – {selectedRequest.toTime}
+                    </span>
+                    {selectedRequest.hoursWorked != null && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-semibold text-sm">
+                        {selectedRequest.hoursWorked} hrs
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <div className="text-sm text-dark-500 dark:text-slate-400">Reason</div>
                 <div className="p-3 rounded-lg bg-slate-50 dark:bg-servicenow-dark text-sm text-dark-700 dark:text-slate-300 border border-slate-100 dark:border-slate-700">
