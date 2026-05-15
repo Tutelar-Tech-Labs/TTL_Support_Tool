@@ -25,14 +25,24 @@ export const getLeaveBalance = async (req, res, next) => {
 // @access  Private
 export const applyLeave = async (req, res, next) => {
   try {
-    const { leaveType, fromDate, toDate, reason } = req.body;
+    const { leaveType, fromDate, toDate, reason, halfDayPeriod } = req.body;
 
     if (!leaveType || !fromDate || !toDate) {
       return res.status(400).json({ success: false, message: 'Leave type, from date, and to date are required' });
     }
 
-    if (!['Planned', 'Sick', 'CompOff'].includes(leaveType)) {
-      return res.status(400).json({ success: false, message: 'Leave type must be Planned, Sick, or CompOff' });
+    if (!['Planned', 'Sick', 'CompOff', 'HalfDay'].includes(leaveType)) {
+      return res.status(400).json({ success: false, message: 'Leave type must be Planned, Sick, CompOff, or HalfDay' });
+    }
+
+    // HalfDay-specific validation
+    if (leaveType === 'HalfDay') {
+      if (!halfDayPeriod || !['Morning', 'Afternoon'].includes(halfDayPeriod)) {
+        return res.status(400).json({ success: false, message: 'Half day period must be Morning or Afternoon' });
+      }
+      if (fromDate !== toDate) {
+        return res.status(400).json({ success: false, message: 'From date and To date must be the same for a half day leave' });
+      }
     }
 
     const from = new Date(fromDate);
@@ -42,9 +52,14 @@ export const applyLeave = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'To date must be after from date' });
     }
 
-    // Calculate total days (inclusive)
-    const diffTime = Math.abs(to - from);
-    const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    // Calculate total days (inclusive), 0.5 for half day
+    let totalDays;
+    if (leaveType === 'HalfDay') {
+      totalDays = 0.5;
+    } else {
+      const diffTime = Math.abs(to - from);
+      totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
 
     // CompOff specific checks
     if (leaveType === 'CompOff') {
@@ -68,7 +83,7 @@ export const applyLeave = async (req, res, next) => {
       // We should probably link the credits to the leave application.
     }
 
-    // Planned leave must be at least 14 days in advance
+    // Planned leave must be at least 14 days in advance (not applicable for HalfDay)
     if (leaveType === 'Planned') {
       const now = new Date();
       const minDate = new Date(now);
@@ -90,6 +105,7 @@ export const applyLeave = async (req, res, next) => {
       toDate,
       totalDays,
       reason: reason || '',
+      halfDayPeriod: leaveType === 'HalfDay' ? halfDayPeriod : null,
     });
 
     res.status(201).json({

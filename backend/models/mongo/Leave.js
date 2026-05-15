@@ -9,8 +9,13 @@ const leaveSchema = new mongoose.Schema(
     },
     leaveType: {
       type: String,
-      enum: ['Planned', 'Sick', 'CompOff'],
+      enum: ['Planned', 'Sick', 'CompOff', 'HalfDay'],
       required: true,
+    },
+    halfDayPeriod: {
+      type: String,
+      enum: ['Morning', 'Afternoon', null],
+      default: null,
     },
     fromDate: {
       type: String, // YYYY-MM-DD

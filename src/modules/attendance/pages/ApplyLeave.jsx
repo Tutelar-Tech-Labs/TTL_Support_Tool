@@ -9,6 +9,7 @@ const ApplyLeave = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [reason, setReason] = useState('');
+  const [halfDayPeriod, setHalfDayPeriod] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Calculate min date for planned leave (14 days from today)
@@ -25,6 +26,7 @@ const ApplyLeave = () => {
 
   // Calculate total days
   const getTotalDays = () => {
+    if (leaveType === 'HalfDay') return fromDate ? 0.5 : 0;
     if (!fromDate || !toDate) return 0;
     const from = new Date(fromDate);
     const to = new Date(toDate);
@@ -39,18 +41,33 @@ const ApplyLeave = () => {
       toast.error('Please select a leave type');
       return;
     }
-    if (!fromDate || !toDate) {
-      toast.error('Please select from and to dates');
+    if (!fromDate) {
+      toast.error('Please select a date');
       return;
     }
-    if (new Date(toDate) < new Date(fromDate)) {
+    if (leaveType !== 'HalfDay' && !toDate) {
+      toast.error('Please select a to date');
+      return;
+    }
+    if (leaveType === 'HalfDay' && !halfDayPeriod) {
+      toast.error('Please select Morning or Afternoon for the half day');
+      return;
+    }
+    if (leaveType !== 'HalfDay' && new Date(toDate) < new Date(fromDate)) {
       toast.error('To date must be after from date');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const response = await leaveAPI.applyLeave({ leaveType, fromDate, toDate, reason });
+      const payload = {
+        leaveType,
+        fromDate,
+        toDate: leaveType === 'HalfDay' ? fromDate : toDate,
+        reason,
+        ...(leaveType === 'HalfDay' && { halfDayPeriod }),
+      };
+      const response = await leaveAPI.applyLeave(payload);
       toast.success(response.message || 'Leave applied successfully!');
       navigate('/leave/my');
     } catch (error) {
@@ -91,12 +108,14 @@ const ApplyLeave = () => {
                 setLeaveType(e.target.value);
                 setFromDate('');
                 setToDate('');
+                setHalfDayPeriod('');
               }}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-servicenow text-dark-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
             >
               <option value="">-- Select --</option>
               <option value="Planned">Planned Leave</option>
               <option value="Sick">Sick Leave</option>
+              <option value="HalfDay">Half Day Leave</option>
               <option value="CompOff">Comp Off Leave</option>
             </select>
             {leaveType === 'Planned' && (
@@ -107,13 +126,38 @@ const ApplyLeave = () => {
                 Planned leave must be applied at least 2 weeks in advance
               </p>
             )}
+            {leaveType === 'HalfDay' && (
+              <div className="mt-3">
+                <label className="block text-sm font-semibold text-dark-700 dark:text-slate-300 mb-2">
+                  Half Day Period<span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-3">
+                  {['Morning', 'Afternoon'].map((period) => (
+                    <button
+                      key={period}
+                      type="button"
+                      onClick={() => setHalfDayPeriod(period)}
+                      className={`flex-1 py-2.5 rounded-xl border-2 font-semibold text-sm transition-all ${
+                        halfDayPeriod === period
+                          ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300'
+                          : 'border-gray-200 dark:border-slate-700 text-dark-500 dark:text-slate-400 hover:border-violet-300'
+                      }`}
+                    >
+                      {period === 'Morning' ? ' Morning' : ' Afternoon'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Leave Balance Display */}
           <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-900/30">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Total Days</span>
-              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">{getTotalDays()} Day(s)</span>
+              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {getTotalDays()} {getTotalDays() === 0.5 ? 'Half Day' : `Day${getTotalDays() !== 1 ? '(s)' : ''}`}
+              </span>
             </div>
           </div>
 
@@ -121,30 +165,35 @@ const ApplyLeave = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label className="block text-sm font-semibold text-dark-700 dark:text-slate-300 mb-2">
-                From Date<span className="text-red-500">*</span>
+                {leaveType === 'HalfDay' ? 'Date' : 'From Date'}<span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 value={fromDate}
                 min={getMinFromDate()}
-                onChange={(e) => setFromDate(e.target.value)}
+                onChange={(e) => {
+                  setFromDate(e.target.value);
+                  if (leaveType === 'HalfDay') setToDate(e.target.value);
+                }}
                 disabled={!leaveType}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-servicenow text-dark-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-dark-700 dark:text-slate-300 mb-2">
-                To Date<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={toDate}
-                min={fromDate || getMinFromDate()}
-                onChange={(e) => setToDate(e.target.value)}
-                disabled={!leaveType || !fromDate}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-servicenow text-dark-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-            </div>
+            {leaveType !== 'HalfDay' && (
+              <div>
+                <label className="block text-sm font-semibold text-dark-700 dark:text-slate-300 mb-2">
+                  To Date<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={toDate}
+                  min={fromDate || getMinFromDate()}
+                  onChange={(e) => setToDate(e.target.value)}
+                  disabled={!leaveType || !fromDate}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-servicenow text-dark-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+            )}
           </div>
 
           {/* Reason */}
@@ -174,7 +223,7 @@ const ApplyLeave = () => {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || !leaveType || !fromDate || !toDate}
+                disabled={isSubmitting || !leaveType || !fromDate || (leaveType !== 'HalfDay' && !toDate) || (leaveType === 'HalfDay' && !halfDayPeriod)}
                 className="px-8 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-bold shadow-lg hover:shadow-primary-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Applying...' : 'Apply'}
