@@ -12,7 +12,8 @@ const ALERT_ADMIN_EMAIL = 'rambalaji@tutelartechlabs.com';
 
 // ── Missing Records Panel ──────────────────────────────────────────────────
 const MissingRecordsPanel = ({ alerts }) => {
-  const [openSection, setOpenSection] = useState('attendance');
+  const [showAttendance, setShowAttendance] = useState(true);
+  const [showWorklog, setShowWorklog] = useState(true);
 
   if (!alerts) return null;
 
@@ -52,7 +53,7 @@ const MissingRecordsPanel = ({ alerts }) => {
           <Card className="border-l-4 border-l-red-500">
             <button
               className="w-full flex items-center justify-between mb-3"
-              onClick={() => setOpenSection(openSection === 'attendance' ? null : 'attendance')}
+              onClick={() => setShowAttendance((prev) => !prev)}
             >
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
@@ -66,14 +67,14 @@ const MissingRecordsPanel = ({ alerts }) => {
                 </span>
               </div>
               <svg
-                className={`w-4 h-4 text-dark-400 transition-transform ${openSection === 'attendance' ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-dark-400 transition-transform duration-200 ${showAttendance ? 'rotate-180' : ''}`}
                 fill="none" stroke="currentColor" viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
-            {openSection === 'attendance' && (
+            {showAttendance && (
               <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                 {missingAttendance.length === 0 ? (
                   <p className="text-sm text-green-600 dark:text-green-400 text-center py-2">✅ All good!</p>
@@ -101,7 +102,7 @@ const MissingRecordsPanel = ({ alerts }) => {
           <Card className="border-l-4 border-l-orange-500">
             <button
               className="w-full flex items-center justify-between mb-3"
-              onClick={() => setOpenSection(openSection === 'worklog' ? null : 'worklog')}
+              onClick={() => setShowWorklog((prev) => !prev)}
             >
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
@@ -115,14 +116,14 @@ const MissingRecordsPanel = ({ alerts }) => {
                 </span>
               </div>
               <svg
-                className={`w-4 h-4 text-dark-400 transition-transform ${openSection === 'worklog' ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-dark-400 transition-transform duration-200 ${showWorklog ? 'rotate-180' : ''}`}
                 fill="none" stroke="currentColor" viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
-            {openSection === 'worklog' && (
+            {showWorklog && (
               <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                 {missingWorklog.length === 0 ? (
                   <p className="text-sm text-green-600 dark:text-green-400 text-center py-2">✅ All good!</p>

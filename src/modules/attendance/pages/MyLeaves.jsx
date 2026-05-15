@@ -11,6 +11,8 @@ const statusColors = {
 const typeColors = {
   Planned: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   Sick: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  HalfDay: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+  CompOff: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
 };
 
 const MyLeaves = () => {
@@ -122,8 +124,13 @@ const MyLeaves = () => {
                   <div className="flex items-center gap-4">
                     <div className="flex flex-col items-center">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${typeColors[leave.leaveType]}`}>
-                        {leave.leaveType}
+                        {leave.leaveType === 'HalfDay' ? 'Half Day' : leave.leaveType}
                       </span>
+                      {leave.leaveType === 'HalfDay' && leave.halfDayPeriod && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
+                          {leave.halfDayPeriod}
+                        </span>
+                      )}
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-1">
@@ -131,7 +138,7 @@ const MyLeaves = () => {
                           {formatDate(leave.fromDate)} — {formatDate(leave.toDate)}
                         </span>
                         <span className="text-sm text-dark-500 dark:text-slate-400">
-                          ({leave.totalDays} day{leave.totalDays > 1 ? 's' : ''})
+                          ({leave.totalDays === 0.5 ? '½ day' : `${leave.totalDays} day${leave.totalDays > 1 ? 's' : ''}`})
                         </span>
                       </div>
                       {leave.reason && (

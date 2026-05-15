@@ -148,9 +148,25 @@ const EmployeeClaimPage = () => {
     });
 
     const addExpenseItem = () => {
-        // Basic validation
-        if (!currentItem.expense_type || !currentItem.amount || !currentItem.transaction_date || !currentItem.vendor_name || !currentItem.receipt) {
-            toast.error("Please fill required fields (*) and attach invoice");
+        // Field-specific validation with clear messages
+        if (!currentItem.expense_type) {
+            toast.error("Please select an Expense Type");
+            return;
+        }
+        if (!currentItem.transaction_date) {
+            toast.error("Please fill in the Transaction Date");
+            return;
+        }
+        if (!currentItem.vendor_name) {
+            toast.error("Please fill in the Client Name");
+            return;
+        }
+        if (!currentItem.amount) {
+            toast.error("Please enter the Amount");
+            return;
+        }
+        if (!currentItem.receipt && !currentItem.receipt_path) {
+            toast.error("Please attach an invoice / receipt");
             return;
         }
 
