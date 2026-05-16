@@ -31,6 +31,12 @@ export const employeeAPI = {
     return response.data;
   },
 
+  // Update worklog
+  updateWorklog: async (id, data) => {
+    const response = await axios.put(`/worklogs/${id}`, data);
+    return response.data;
+  },
+
   // Get worklogs by range
   getWorklogsByRange: async (from, to) => {
     const response = await axios.get(`/worklogs/range?from=${from}&to=${to}`);

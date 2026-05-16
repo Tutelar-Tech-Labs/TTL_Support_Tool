@@ -8,6 +8,7 @@ import {
   getWorklogsByRange,
   updateProfile,
   getMyAlerts,
+  updateWorklog,
 } from '../controllers/mongo/attendanceController.js';
 import {
   getAllEmployees,
@@ -65,6 +66,7 @@ router.get('/attendance', getAttendance);
 router.post('/worklogs', createWorklog);
 router.get('/worklogs', getWorklogsByDate);
 router.get('/worklogs/range', getWorklogsByRange);
+router.put('/worklogs/:id', updateWorklog);
 router.put('/attendance/profile', updateProfile);
 router.get('/employee/alerts', getMyAlerts);
 

@@ -304,6 +304,8 @@ export default function TicketDetailsView() {
       const formData = new FormData();
       formData.append('status', ticket.status);
       formData.append('severity', ticket.severity);
+      formData.append('ticket_type', ticket.type);
+      formData.append('technology_domain', ticket.technologyDomain);
       formData.append('issue_subject', ticket.issueSubject);
       formData.append('issue_description', ticket.issueDescription);
       formData.append('oem_tac_involved', ticket.oemTacInvolved);
@@ -426,6 +428,8 @@ export default function TicketDetailsView() {
           problem_resolution: ticket.problemResolution,
           rough_notes: ticket.roughNotes,
           reference_url: ticket.referenceUrl,
+          ticket_type: ticket.type,
+          technology_domain: ticket.technologyDomain,
           close_date: now,
           timeline: updatedTicket.timeline
         })
@@ -507,6 +511,8 @@ export default function TicketDetailsView() {
           problem_resolution: ticket.problemResolution,
           rough_notes: ticket.roughNotes,
           reference_url: ticket.referenceUrl,
+          ticket_type: ticket.type,
+          technology_domain: ticket.technologyDomain,
           timeline: updatedTimeline
         })
       });
@@ -555,6 +561,8 @@ export default function TicketDetailsView() {
           problem_resolution: ticket.problemResolution,
           rough_notes: ticket.roughNotes,
           reference_url: ticket.referenceUrl,
+          ticket_type: ticket.type,
+          technology_domain: ticket.technologyDomain,
           timeline: ticket.timeline
         })
       });
@@ -932,17 +940,64 @@ export default function TicketDetailsView() {
                   <p className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     Ticket Type
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                    {ticket.type}
-                  </p>
+                  {isEditing ? (
+                    <select
+                      value={ticket.type}
+                      onChange={(e) => setTicket({ ...ticket, type: e.target.value })}
+                      className="input mt-1"
+                    >
+                      <option value="Incident">Incident</option>
+                      <option value="Service Request">Service Request</option>
+                      <option value="Feature Implementation">Feature Implementation</option>
+                      <option value="UAT">UAT</option>
+                      <option value="Testing">Testing</option>
+                      <option value="BCP">BCP</option>
+                      <option value="Upgrade">Upgrade</option>
+                      <option value="Internal">Internal</option>
+                    </select>
+                  ) : (
+                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                      {ticket.type}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     Technology Domain
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                    {ticket.technologyDomain}
-                  </p>
+                  {isEditing ? (
+                    <select
+                      value={ticket.technologyDomain}
+                      onChange={(e) => setTicket({ ...ticket, technologyDomain: e.target.value })}
+                      className="input mt-1"
+                    >
+                      <optgroup label="Network Security">
+                        <option value="NGFW">NGFW</option>
+                        <option value="SASE">SASE</option>
+                        <option value="CASB">CASB</option>
+                        <option value="PRISMA ACCESS">PRISMA ACCESS</option>
+                        <option value="PRISMA BROWSER">PRISMA BROWSER</option>
+                      </optgroup>
+                      <optgroup label="SOC">
+                        <option value="EDR">EDR</option>
+                        <option value="XDR">XDR</option>
+                        <option value="SIEM">SIEM</option>
+                        <option value="SOAR">SOAR</option>
+                        <option value="ASM">ASM</option>
+                        <option value="TIM">TIM</option>
+                      </optgroup>
+                      <optgroup label="Cloud Security">
+                        <option value="CSPM">CSPM</option>
+                        <option value="CWP">CWP</option>
+                        <option value="CIEM">CIEM</option>
+                        <option value="IAC">IAC</option>
+                      </optgroup>
+                    </select>
+                  ) : (
+                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                      {ticket.technologyDomain}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

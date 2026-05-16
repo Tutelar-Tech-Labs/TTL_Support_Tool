@@ -386,3 +386,89 @@ export const updateProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Update worklog (only for same day)
+// @route   PUT /api/attendance/worklogs/:id
+// @access  Private (Employee)
+export const updateWorklog = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const validatedData = worklogSchema.parse(req.body);
+    
+    // Check if worklog exists and belongs to user
+    const worklog = await Worklog.findOne({
+      _id: id,
+      userId: req.mongoUser._id,
+    });
+    
+    if (!worklog) {
+      return res.status(404).json({
+        success: false,
+        message: 'Worklog not found',
+      });
+    }
+
+    // Check if it's for today (using IST)
+    const today = getISTDateString();
+    if (worklog.date !== today) {
+       return res.status(403).json({
+         success: false,
+         message: 'You can only edit worklogs created for the current day',
+       });
+    }
+    
+    // Validate time range
+    const [fromHours, fromMinutes] = validatedData.fromTime.split(':').map(Number);
+    const [toHours, toMinutes] = validatedData.toTime.split(':').map(Number);
+    const fromTotalMinutes = fromHours * 60 + fromMinutes;
+    const toTotalMinutes = toHours * 60 + toMinutes;
+    
+    if (toTotalMinutes <= fromTotalMinutes) {
+      return res.status(400).json({
+        success: false,
+        message: 'End time must be after start time',
+      });
+    }
+    
+    // Check for overlaps (excluding the current worklog)
+    const overlapCheck = await validateWorklogOverlap(
+      req.mongoUser._id,
+      validatedData.date,
+      validatedData.fromTime,
+      validatedData.toTime,
+      id // Pass current ID to skip it
+    );
+    
+    if (!overlapCheck.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: overlapCheck.message,
+      });
+    }
+    
+    // Update worklog
+    worklog.fromTime = validatedData.fromTime;
+    worklog.toTime = validatedData.toTime;
+    worklog.activity = validatedData.activity;
+    worklog.customerName = validatedData.customerName || null;
+    worklog.ticketId = validatedData.ticketId || null;
+    worklog.durationMinutes = toTotalMinutes - fromTotalMinutes;
+    
+    await worklog.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Worklog updated successfully',
+      data: { worklog },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors: error.errors.map((e) => e.message),
+      });
+    }
+    next(error);
+  }
+};

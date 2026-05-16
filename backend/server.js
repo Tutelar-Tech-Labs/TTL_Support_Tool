@@ -27,7 +27,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 connectMongoDB(); // Connect to MongoDB
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet({

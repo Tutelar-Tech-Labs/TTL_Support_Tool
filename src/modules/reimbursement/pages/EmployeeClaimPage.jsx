@@ -24,6 +24,7 @@ const EmployeeClaimPage = () => {
     // Current Item State
     const initialItemState = {
         expense_type: '',
+        mode_of_transport: '',
         transaction_date: '',
         business_purpose: '',
         vendor_name: '',
@@ -153,6 +154,10 @@ const EmployeeClaimPage = () => {
             toast.error("Please select an Expense Type");
             return;
         }
+        if (currentItem.expense_type === 'Travel' && !currentItem.mode_of_transport) {
+            toast.error("Please select Mode of Transport");
+            return;
+        }
         if (!currentItem.transaction_date) {
             toast.error("Please fill in the Transaction Date");
             return;
@@ -183,6 +188,7 @@ const EmployeeClaimPage = () => {
             business_purpose: currentItem.business_purpose,
             payment_type: currentItem.payment_type, // Persist Payment Method
             expense_type: currentItem.expense_type, // Persist Expense Type
+            mode_of_transport: currentItem.expense_type === 'Travel' ? currentItem.mode_of_transport : '',
             billable: currentItem.billable          // Persist Billable Status
         });
         toast.success("Expense added to report");
@@ -287,6 +293,11 @@ const EmployeeClaimPage = () => {
     // Helper for date max
     const today = new Date().toISOString().split('T')[0];
 
+    const isSubmissionAllowed = () => {
+        const day = new Date().getDate();
+        return day >= 28;
+    };
+
     const getStatusColor = (status) => {
         switch (status) {
             case 'Approved': return 'text-green-500 bg-green-500/10';
@@ -343,6 +354,22 @@ const EmployeeClaimPage = () => {
                                         <option value="Other">Other</option>
                                     </select>
                                 </div>
+
+                                {currentItem.expense_type === 'Travel' && (
+                                    <div>
+                                        <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Mode of Transport *</label>
+                                        <select
+                                            name="mode_of_transport"
+                                            value={currentItem.mode_of_transport}
+                                            onChange={handleInputChange}
+                                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-900 dark:text-white outline-none focus:border-primary-500"
+                                        >
+                                            <option value="">Select Mode</option>
+                                            <option value="Public transport">Public transport</option>
+                                            <option value="Own vehicle">Own vehicle</option>
+                                        </select>
+                                    </div>
+                                )}
 
                                 <div>
                                     <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Transaction Date *</label>
@@ -560,10 +587,17 @@ const EmployeeClaimPage = () => {
                                     <span className="text-2xl font-bold text-gray-900 dark:text-white">₹{calculateTotal().toFixed(2)}</span>
                                 </div>
 
+                                {!isSubmissionAllowed() && (
+                                    <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-600 dark:text-yellow-400 text-xs flex items-start gap-2">
+                                        <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                        <span>Submission is only allowed between the 28th and the last day of the month. You can still save your progress as a draft.</span>
+                                    </div>
+                                )}
+
                                 <button
                                     onClick={() => handleSubmitClaim('Submitted')}
-                                    disabled={expenseItems.length === 0 || loading}
-                                    className={`w-full py-3 rounded-lg font-bold text-white transition ${expenseItems.length === 0 || loading
+                                    disabled={expenseItems.length === 0 || loading || !isSubmissionAllowed()}
+                                    className={`w-full py-3 rounded-lg font-bold text-white transition ${expenseItems.length === 0 || loading || !isSubmissionAllowed()
                                         ? 'bg-gray-700 cursor-not-allowed text-gray-400'
                                         : 'bg-green-600 hover:bg-green-700 shadow-lg'
                                         }`}
@@ -686,6 +720,9 @@ const EmployeeClaimPage = () => {
                                                 </div>
                                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-4 text-sm text-gray-700 dark:text-gray-300">
                                                     <div><span className="text-gray-500">Date:</span> {new Date(item.transaction_date).toLocaleDateString()}</div>
+                                                    {item.expense_type === 'Travel' && item.mode_of_transport && (
+                                                        <div><span className="text-gray-500">Mode:</span> {item.mode_of_transport}</div>
+                                                    )}
                                                     <div><span className="text-gray-500">Client:</span> {item.vendor_name}</div>
                                                     <div><span className="text-gray-500">City:</span> {item.city || '-'}</div>
                                                     <div><span className="text-gray-500">Purpose:</span> {item.business_purpose || '-'}</div>

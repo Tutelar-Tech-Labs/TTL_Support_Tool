@@ -15,7 +15,7 @@ export default function SalesOpportunityView() {
 
   const [loading, setLoading] = useState(false);
   const [activeStage, setActiveStage] = useState(1);
-  const [maxStage, setMaxStage] = useState(1); // The highest unlocked stage
+  const [maxStage, setMaxStage] = useState(7); // All stages unlocked by default
   const [approvalStatus, setApprovalStatus] = useState(null); // 'Pending', 'Approved', 'Rejected', null
   
   // Header State
@@ -180,7 +180,7 @@ export default function SalesOpportunityView() {
       }
       
       setActiveStage(data.current_stage || 1);
-      setMaxStage(data.current_stage || 1);
+      setMaxStage(7); // Always keep all stages unlocked
       setStageStatus(data.stage_status);
 
       // Fetch Approval Status
@@ -314,16 +314,7 @@ export default function SalesOpportunityView() {
   };
 
   const canAdvance = () => {
-    if (activeStage === 1) return stageData.stage1.go_no_go === 'Yes';
-    if (activeStage === 2) return stageData.stage2.handoff_presales === 'Yes' && stageData.stage2.oem_approval === 'Yes';
-    if (activeStage === 3) return stageData.stage3.handoff_tech === 'Yes';
-    if (activeStage === 4) return stageData.stage4.commercial_closure === 'Yes';
-    if (activeStage === 6) {
-      return stageData.stage6.uat_completion_doc_yn === 'Yes' && 
-             stageData.stage6.project_signoff === 'Yes' && 
-             stageData.stage6.closure_mail_yn === 'Yes';
-    }
-    return true;
+    return true; // No longer restricted by approval or mandatory fields
   };
 
   const saveOpportunity = async (payload, isNextStage = false) => {
@@ -383,32 +374,8 @@ export default function SalesOpportunityView() {
   const handleNextStage = (e) => {
     e?.preventDefault();
     
-    // Validation
+    // Validation removed as per user request
     const newErrors = {};
-    if (activeStage === 1) {
-       if (stageData.stage1.go_no_go !== 'Yes') newErrors['stage1.go_no_go'] = true;
-    }
-    if (activeStage === 2) {
-       if (stageData.stage2.handoff_presales !== 'Yes') newErrors['stage2.handoff_presales'] = true;
-       if (stageData.stage2.oem_approval !== 'Yes') newErrors['stage2.oem_approval'] = true;
-    }
-    if (activeStage === 3) {
-       if (stageData.stage3.handoff_tech !== 'Yes') newErrors['stage3.handoff_tech'] = true;
-    }
-    if (activeStage === 4) {
-       if (stageData.stage4.commercial_closure !== 'Yes') newErrors['stage4.commercial_closure'] = true;
-    }
-    if (activeStage === 6) {
-       if (stageData.stage6.uat_completion_doc_yn !== 'Yes') newErrors['stage6.uat_completion_doc_yn'] = true;
-       if (stageData.stage6.project_signoff !== 'Yes') newErrors['stage6.project_signoff'] = true;
-       if (stageData.stage6.closure_mail_yn !== 'Yes') newErrors['stage6.closure_mail_yn'] = true;
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      toast.error("Please fill all mandatory fields marked with *.");
-      return;
-    }
     
     if (activeStage >= 7) {
       toast.success("Opportunity already at final stage!");
@@ -509,63 +476,38 @@ export default function SalesOpportunityView() {
   const [errors, setErrors] = useState({});
 
   // Helper for Yes/No Dropdown
-  const YesNoSelect = ({ label, stage, field, value, required }) => (
+  const YesNoSelect = ({ label, stage, field, value }) => (
     <div>
       <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-        {label} {required && <span className="text-red-500">*</span>}
+        {label}
       </label>
       <select 
-        className={`w-full border p-2 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-servicenow-dark dark:border-slate-600 dark:text-white ${errors[`stage${stage}.${field}`] ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300'}`}
+        className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-servicenow-dark dark:border-slate-600 dark:text-white border-gray-300"
         value={value || 'No'}
         onChange={(e) => {
             handleStageDataChange(stage, field, e.target.value);
-            if (errors[`stage${stage}.${field}`]) {
-                setErrors(prev => ({ ...prev, [`stage${stage}.${field}`]: false }));
-            }
         }}
       >
         <option value="Yes">Yes</option>
         <option value="No">No</option>
       </select>
-       {errors[`stage${stage}.${field}`] && <p className="text-red-500 text-xs mt-1">This field is required</p>}
     </div>
   );
 
-  const ApprovalStatus = ({ label, value, onRequest }) => (
+  const ApprovalStatus = ({ label, value }) => (
     <div>
       <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-        {label} <span className="text-red-500">*</span>
+        {label}
       </label>
       <div className="flex items-center gap-4">
-        <div className={`px-4 py-2 rounded-lg font-semibold text-sm border 
-          ${value === 'Yes' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' : 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-servicenow-dark dark:text-gray-300 dark:border-slate-700'}`}>
-          {value === 'Yes' ? 'Approved (Go)' : 'No-Go / Pending'}
-        </div>
-        
-        {value !== 'Yes' && (
-           <>
-             {approvalStatus === 'Pending' ? (
-                <span className="text-orange-500 font-medium flex items-center gap-2">
-                  <Clock className="w-4 h-4" /> Approval Pending...
-                </span>
-             ) : approvalStatus === 'Approved' ? (
-                <span className="text-green-600 font-medium flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4" /> Access Granted
-                </span>
-             ) : (
-                <button 
-                  type="button"
-                  onClick={onRequest}
-                  className="bg-primary-600 text-white px-3 py-1.5 rounded text-sm hover:bg-primary-700 transition"
-                >
-                  Request Access
-                </button>
-             )}
-             {approvalStatus === 'Rejected' && (
-                <span className="text-red-500 text-sm font-medium ml-2">Request Rejected</span>
-             )}
-           </>
-        )}
+        <select 
+          className="border p-2 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-servicenow-dark dark:border-slate-600 dark:text-white border-gray-300"
+          value={value || 'No'}
+          onChange={(e) => handleStageDataChange(1, 'go_no_go', e.target.value)}
+        >
+          <option value="Yes">Approved (Go)</option>
+          <option value="No">No-Go / Pending</option>
+        </select>
       </div>
     </div>
   );
