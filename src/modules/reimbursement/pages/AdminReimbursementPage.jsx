@@ -649,6 +649,12 @@ const AdminReimbursementPage = () => {
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-y-3 gap-x-6 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-3 rounded border border-gray-100 dark:border-gray-700/50">
+                                                {item.expense_type === 'Travel' && item.mode_of_transport && (
+                                                    <div className="col-span-2 pb-2 border-b border-gray-100 dark:border-gray-700/50 mb-1">
+                                                        <span className="text-gray-500 block text-xs uppercase tracking-wide">Mode of Transport</span>
+                                                        <span className="font-medium text-primary-600 dark:text-primary-400">{item.mode_of_transport}</span>
+                                                    </div>
+                                                )}
                                                 <div><span className="text-gray-500 block text-xs uppercase tracking-wide">City</span> {item.city || '-'}</div>
                                                 <div><span className="text-gray-500 block text-xs uppercase tracking-wide">Purpose</span> {item.business_purpose || '-'}</div>
                                                 <div><span className="text-gray-500 block text-xs uppercase tracking-wide">Payment</span> {item.payment_type}</div>

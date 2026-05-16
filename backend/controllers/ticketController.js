@@ -45,10 +45,18 @@ export const createTicket = async (req, res) => {
       open_date, close_date, created_by
     } = req.body;
 
-    // Validate contact phone - must be exactly 10 digits to avoid server errors
+    // Validate contact phone: 
+    // Mandatory 10-digits for normal tickets.
+    // Optional for Internal, but if provided must be 10 digits.
     const phoneDigits = String(contact_phone || '').replace(/\D/g, '');
-    if (phoneDigits.length !== 10) {
-      return res.status(400).json({ message: "Invalid contact phone. Enter a 10-digit mobile number." });
+    const isInternal = ticket_type === "Internal";
+
+    if (!isInternal) {
+      if (phoneDigits.length !== 10) {
+        return res.status(400).json({ message: "Invalid contact phone. Enter a 10-digit mobile number." });
+      }
+    } else if (phoneDigits.length > 0 && phoneDigits.length !== 10) {
+      return res.status(400).json({ message: "If provided, contact phone must be a 10-digit mobile number." });
     }
 
     const [creator] = await db.query(
@@ -354,7 +362,7 @@ export const updateTicket = async (req, res) => {
       status, severity, issue_subject, issue_description,
       engineer_remarks, problem_resolution, timeline, rough_notes,
       oem_tac_involved, tac_case_number, reference_url,
-      close_date
+      close_date, ticket_type, technology_domain
     } = req.body;
 
     let parsedOemTac = oem_tac_involved === 'null' ? null : oem_tac_involved;
@@ -366,9 +374,10 @@ export const updateTicket = async (req, res) => {
     let query = `UPDATE tickets SET 
         status = ?, severity = ?, issue_subject = ?, issue_description = ?,
         engineer_remarks = ?, problem_resolution = ?, rough_notes = ?,
-        oem_tac_involved = ?, tac_case_number = ?, reference_url = ?`;
+        oem_tac_involved = ?, tac_case_number = ?, reference_url = ?,
+        ticket_type = IFNULL(?, ticket_type), technology_domain = IFNULL(?, technology_domain)`;
 
-    const params = [status, severity, issue_subject, issue_description, parsedEngRemarks, parsedProbRes, parsedRoughNotes, parsedOemTac, parsedTacCase, reference_url];
+    const params = [status, severity, issue_subject, issue_description, parsedEngRemarks, parsedProbRes, parsedRoughNotes, parsedOemTac, parsedTacCase, reference_url, ticket_type, technology_domain];
 
     if (timeline) {
       query += `, timeline = ?`;

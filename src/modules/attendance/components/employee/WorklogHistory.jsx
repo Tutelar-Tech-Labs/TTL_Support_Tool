@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import DatePicker from 'react-datepicker';
+import toast from 'react-hot-toast';
 import { employeeAPI } from '../../api/employee';
 import Card from '../ui/Card';
+import Button from '../ui/Button';
 import 'react-datepicker/dist/react-datepicker.css';
+import { Pencil, X, Save, Clock, AlertCircle } from 'lucide-react';
 
 const WorklogHistory = ({ refreshTrigger }) => {
   const [worklogs, setWorklogs] = useState([]);
@@ -11,6 +14,8 @@ const WorklogHistory = ({ refreshTrigger }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [editingLog, setEditingLog] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     loadWorklogs();
@@ -50,6 +55,41 @@ const WorklogHistory = ({ refreshTrigger }) => {
   };
 
   const totalHours = filteredWorklogs.reduce((sum, log) => sum + log.durationMinutes, 0) / 60;
+
+  const getISTDateString = (date = new Date()) => {
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    return new Date(date.getTime() + istOffset).toISOString().split('T')[0];
+  };
+
+  const isToday = (dateStr) => {
+    const todayStr = getISTDateString();
+    // dateStr from backend is already in YYYY-MM-DD format
+    return todayStr === dateStr;
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    try {
+      // Basic time validation
+      const [h1, m1] = editingLog.fromTime.split(':').map(Number);
+      const [h2, m2] = editingLog.toTime.split(':').map(Number);
+      if (h2 * 60 + m2 <= h1 * 60 + m1) {
+        toast.error("End time must be after start time");
+        return;
+      }
+
+      await employeeAPI.updateWorklog(editingLog._id, editingLog);
+      toast.success("Worklog updated successfully!");
+      setEditingLog(null);
+      loadWorklogs();
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to update worklog");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <Card>
@@ -108,6 +148,7 @@ const WorklogHistory = ({ refreshTrigger }) => {
                 <th className="text-left p-3 text-sm font-semibold text-dark-700 dark:text-slate-300">Customer</th>
                 <th className="text-left p-3 text-sm font-semibold text-dark-700 dark:text-slate-300">Ticket</th>
                 <th className="text-left p-3 text-sm font-semibold text-dark-700 dark:text-slate-300">Activity</th>
+                <th className="text-center p-3 text-sm font-semibold text-dark-700 dark:text-slate-300">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -136,10 +177,115 @@ const WorklogHistory = ({ refreshTrigger }) => {
                   <td className="p-3 text-sm text-dark-700 dark:text-slate-300 max-w-md">
                     {log.activity}
                   </td>
+                  <td className="p-3 text-center">
+                    {isToday(log.date) ? (
+                      <button
+                        onClick={() => setEditingLog({ ...log })}
+                        className="p-1.5 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+                        title="Edit entry"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <span className="text-xs text-gray-400 dark:text-slate-500">Locked</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingLog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-servicenow-light rounded-2xl shadow-2xl w-full max-w-lg border border-white/20 dark:border-white/10 overflow-hidden transform animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between bg-gradient-to-r from-primary-600 to-accent-600">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Pencil className="w-5 h-5" />
+                Edit Worklog
+              </h3>
+              <button onClick={() => setEditingLog(null)} className="text-white/80 hover:text-white">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdate} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="label-premium">From Time</label>
+                  <input
+                    type="time"
+                    className="input-premium"
+                    value={editingLog.fromTime}
+                    onChange={(e) => setEditingLog({ ...editingLog, fromTime: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="label-premium">To Time</label>
+                  <input
+                    type="time"
+                    className="input-premium"
+                    value={editingLog.toTime}
+                    onChange={(e) => setEditingLog({ ...editingLog, toTime: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="label-premium">Customer</label>
+                  <input
+                    type="text"
+                    className="input-premium"
+                    value={editingLog.customerName || ''}
+                    onChange={(e) => setEditingLog({ ...editingLog, customerName: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="label-premium">Ticket ID</label>
+                  <input
+                    type="text"
+                    className="input-premium"
+                    value={editingLog.ticketId || ''}
+                    onChange={(e) => setEditingLog({ ...editingLog, ticketId: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="label-premium">Activity</label>
+                <textarea
+                  className="input-premium resize-none h-32"
+                  value={editingLog.activity}
+                  onChange={(e) => setEditingLog({ ...editingLog, activity: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => setEditingLog(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="flex-1"
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </Card>

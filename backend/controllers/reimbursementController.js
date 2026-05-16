@@ -31,6 +31,7 @@ const initTables = async () => {
         id INT AUTO_INCREMENT PRIMARY KEY,
         claim_id INT NOT NULL,
         expense_type VARCHAR(100) NOT NULL,
+        mode_of_transport VARCHAR(100),
         transaction_date DATE NOT NULL,
         business_purpose TEXT,
         vendor_name VARCHAR(255),
@@ -84,6 +85,14 @@ const initTables = async () => {
                 const [cols] = await connection.query("SHOW COLUMNS FROM expense_claims LIKE 'claim_number'");
                 if (cols.length === 0) {
                     await connection.query("ALTER TABLE expense_claims ADD COLUMN claim_number VARCHAR(50) UNIQUE AFTER id");
+                }
+            } catch (e) { }
+
+            // 5. Add mode_of_transport column if missing
+            try {
+                const [cols] = await connection.query("SHOW COLUMNS FROM expense_items LIKE 'mode_of_transport'");
+                if (cols.length === 0) {
+                    await connection.query("ALTER TABLE expense_items ADD COLUMN mode_of_transport VARCHAR(100) AFTER expense_type");
                 }
             } catch (e) { }
 
@@ -172,12 +181,12 @@ export const submitClaim = async (req, res) => {
 
             await connection.query(
                 `INSERT INTO expense_items (
-                claim_id, expense_type, transaction_date, business_purpose, 
+                claim_id, expense_type, mode_of_transport, transaction_date, business_purpose, 
                 vendor_name, city, payment_type, amount, billable, 
                 project_no, event, domestic_intl, receipt_path
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    claimId, item.expense_type, formattedDate, item.business_purpose,
+                    claimId, item.expense_type, item.mode_of_transport || null, formattedDate, item.business_purpose,
                     item.vendor_name, item.city, item.payment_type, item.amount,
                     item.billable, item.project_no, item.event,
                     item.domestic_intl, receiptPath
@@ -254,12 +263,12 @@ export const updateDraft = async (req, res) => {
 
             await connection.query(
                 `INSERT INTO expense_items (
-                claim_id, expense_type, transaction_date, business_purpose, 
+                claim_id, expense_type, mode_of_transport, transaction_date, business_purpose, 
                 vendor_name, city, payment_type, amount, billable, 
                 project_no, event, domestic_intl, receipt_path
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    id, item.expense_type, formattedDate, item.business_purpose,
+                    id, item.expense_type, item.mode_of_transport || null, formattedDate, item.business_purpose,
                     item.vendor_name, item.city, item.payment_type, item.amount,
                     item.billable, item.project_no, item.event,
                     item.domestic_intl, receiptPath
@@ -487,12 +496,13 @@ export const exportExcel = async (req, res) => {
         sheet.addRow(['Total Amount:', claim[0].total_amount]);
         sheet.addRow(['Status:', claim[0].status]);
         sheet.addRow([]);
-        sheet.addRow(['Date', 'Type', 'Vendor', 'Business Purpose', 'City', 'Payment', 'Amount', 'Billable']);
+        sheet.addRow(['Date', 'Type', 'Mode', 'Vendor', 'Business Purpose', 'City', 'Payment', 'Amount', 'Billable']);
 
         items.forEach(item => {
             sheet.addRow([
                 new Date(item.transaction_date).toLocaleDateString(),
                 item.expense_type,
+                item.mode_of_transport || '-',
                 item.vendor_name,
                 item.business_purpose,
                 item.city,
@@ -532,7 +542,7 @@ export const exportPdf = async (req, res) => {
         doc.moveDown();
 
         items.forEach(item => {
-            doc.fontSize(10).text(`${new Date(item.transaction_date).toLocaleDateString()} - ${item.expense_type} - ${item.vendor_name} - Rs.${item.amount}`);
+            doc.fontSize(10).text(`${new Date(item.transaction_date).toLocaleDateString()} - ${item.expense_type}${item.mode_of_transport ? ` (${item.mode_of_transport})` : ''} - ${item.vendor_name} - Rs.${item.amount}`);
             doc.moveDown(0.5);
         });
 
@@ -590,7 +600,7 @@ export const exportItemsBulk = async (req, res) => {
         if (type === 'excel') {
             const workbook = new ExcelJS.Workbook();
             const sheet = workbook.addWorksheet('Selected Expenses');
-            sheet.addRow(['Date', 'Employee', 'Report', 'Type', 'Vendor', 'Business Purpose', 'City', 'Payment', 'Amount', 'Billable']);
+            sheet.addRow(['Date', 'Employee', 'Report', 'Type', 'Mode', 'Vendor', 'Business Purpose', 'City', 'Payment', 'Amount', 'Billable']);
 
             items.forEach(item => {
                 sheet.addRow([
@@ -598,6 +608,7 @@ export const exportItemsBulk = async (req, res) => {
                     item.employee_name,
                     item.report_name,
                     item.expense_type,
+                    item.mode_of_transport || '-',
                     item.vendor_name,
                     item.business_purpose,
                     item.city,
@@ -622,7 +633,7 @@ export const exportItemsBulk = async (req, res) => {
 
             items.forEach(item => {
                 doc.fontSize(10).text(`${new Date(item.transaction_date).toLocaleDateString()} - ${item.employee_name} (${item.report_name})`);
-                doc.fontSize(12).text(`${item.expense_type} - ${item.vendor_name} - Rs.${item.amount}`);
+                doc.fontSize(12).text(`${item.expense_type}${item.mode_of_transport ? ` (${item.mode_of_transport})` : ''} - ${item.vendor_name} - Rs.${item.amount}`);
                 doc.moveDown(0.5);
                 doc.moveTo(doc.x, doc.y).lineTo(500, doc.y).stroke();
                 doc.moveDown(0.5);

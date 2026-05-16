@@ -46,6 +46,7 @@ export default function TicketCreationForm() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isOtherSelected, setIsOtherSelected] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isInternal = formData.ticketType === "Internal";
 
   // Fetch customers from DB
   useEffect(() => {
@@ -141,10 +142,18 @@ export default function TicketCreationForm() {
     setIsSubmitting(true);
 
     try {
-      // Frontend validation for 10-digit phone number
+      // Phone validation: 
+      // If NOT internal, it's mandatory and must be 10 digits.
+      // If internal, it's optional, but if filled, it must be 10 digits.
       const phoneDigits = String(formData.phone || '').replace(/\D/g, '');
-      if (phoneDigits.length !== 10) {
-        toast.error("Please enter a valid 10-digit mobile number for the contact");
+      if (!isInternal) {
+        if (phoneDigits.length !== 10) {
+          toast.error("Please enter a valid 10-digit mobile number for the contact");
+          setIsSubmitting(false);
+          return;
+        }
+      } else if (phoneDigits.length > 0 && phoneDigits.length !== 10) {
+        toast.error("If provided, the mobile number must be 10 digits");
         setIsSubmitting(false);
         return;
       }
@@ -290,7 +299,7 @@ export default function TicketCreationForm() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Severity <span className="text-red-500">*</span>
+                  Severity {!isInternal && <span className="text-red-500">*</span>}
                 </label>
                 <select
                   value={formData.severity}
@@ -298,7 +307,7 @@ export default function TicketCreationForm() {
                     setFormData({ ...formData, severity: e.target.value })
                   }
                   className="input"
-                  required
+                  required={!isInternal}
                 >
                   <option value="Critical">Critical</option>
                   <option value="High">High</option>
@@ -334,7 +343,7 @@ export default function TicketCreationForm() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Technology Domain <span className="text-red-500">*</span>
+                  Technology Domain {!isInternal && <span className="text-red-500">*</span>}
                 </label>
                 <select
                   value={formData.technologyDomain}
@@ -345,7 +354,7 @@ export default function TicketCreationForm() {
                     })
                   }
                   className="input"
-                  required
+                  required={!isInternal}
                 >
                   <optgroup label="Network Security">
                     <option value="NGFW">NGFW</option>
@@ -381,13 +390,13 @@ export default function TicketCreationForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Customer Name <span className="text-red-500">*</span>
+                  Customer Name {!isInternal && <span className="text-red-500">*</span>}
                 </label>
                 <select
                   className="input"
                   value={isOtherSelected ? "Others" : formData.customerName}
                   onChange={handleCustomerChange}
-                  required
+                  required={!isInternal}
                 >
                   <option value="">Select Customer</option>
                   {customers.map(c => (
@@ -402,21 +411,21 @@ export default function TicketCreationForm() {
                     value={formData.customerName}
                     onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                     placeholder="Enter customer name"
-                    required
+                    required={!isInternal}
                   />
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Serial No <span className="text-red-500">*</span>
+                  Serial No {!isInternal && <span className="text-red-500">*</span>}
                 </label>
                 {!isOtherSelected && selectedCustomer ? (
                   <select
                     className="input"
                     value={formData.customerId}
                     onChange={handleSerialChange}
-                    required
+                    required={!isInternal}
                   >
                     <option value="">Select Serial No</option>
                     {selectedCustomer.serials?.map((s, idx) => (
@@ -430,7 +439,7 @@ export default function TicketCreationForm() {
                     onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
                     className="input"
                     placeholder="CUS-1XXXX"
-                    required
+                    required={!isInternal}
                   />
                 )}
               </div>
@@ -460,14 +469,14 @@ export default function TicketCreationForm() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Contact Name <span className="text-red-500">*</span>
+                  Contact Name {!isInternal && <span className="text-red-500">*</span>}
                 </label>
                 {!isOtherSelected && selectedCustomer ? (
                   <select
                     className="input"
                     value={formData.contactName}
                     onChange={handleContactChange}
-                    required
+                    required={!isInternal}
                   >
                     <option value="">Select Contact Person</option>
                     {selectedCustomer.contacts?.map((c, idx) => (
@@ -481,14 +490,14 @@ export default function TicketCreationForm() {
                     onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
                     className="input"
                     placeholder="Enter contact person"
-                    required
+                    required={!isInternal}
                   />
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Phone <span className="text-red-500">*</span>
+                  Phone {!isInternal && <span className="text-red-500">*</span>}
                 </label>
                 <input
                   type="tel"
@@ -498,14 +507,14 @@ export default function TicketCreationForm() {
                   }
                   className="input"
                   placeholder="10-digit mobile number"
-                  required
+                  required={!isInternal}
                   readOnly={!isOtherSelected && !!selectedCustomer && formData.contactName !== ""}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Email <span className="text-red-500">*</span>
+                  Email {!isInternal && <span className="text-red-500">*</span>}
                 </label>
                 <input
                   type="email"
@@ -515,7 +524,7 @@ export default function TicketCreationForm() {
                   }
                   className="input"
                   placeholder="customer@company.com"
-                  required
+                  required={!isInternal}
                   readOnly={!isOtherSelected && !!selectedCustomer && formData.contactName !== ""}
                 />
               </div>
@@ -573,7 +582,7 @@ export default function TicketCreationForm() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Issue Subject <span className="text-red-500">*</span>
+                  Issue Subject {!isInternal && <span className="text-red-500">*</span>}
                 </label>
                 <input
                   type="text"
@@ -586,13 +595,13 @@ export default function TicketCreationForm() {
                     })
                   }
                   placeholder="Brief description of the issue"
-                  required
+                  required={!isInternal}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Issue Description <span className="text-red-500">*</span>
+                  Issue Description {!isInternal && <span className="text-red-500">*</span>}
                 </label>
                 <textarea
                   rows={4}
@@ -605,7 +614,7 @@ export default function TicketCreationForm() {
                     })
                   }
                   placeholder="Detailed description of the issue, steps to reproduce, and any relevant information..."
-                  required
+                  required={!isInternal}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
